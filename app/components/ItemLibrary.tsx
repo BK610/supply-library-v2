@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ItemFilters from "./ItemFilters";
+import SearchBar from "./SearchBar";
 
 interface ItemLibraryItem {
   "Tool/Supply": string;
@@ -31,6 +32,7 @@ export default function ItemLibrary({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [types, setTypes] = useState<string[]>([]);
   const [owners, setOwners] = useState<string[]>([]);
@@ -54,15 +56,25 @@ export default function ItemLibrary({
 
   useEffect(() => {
     const filtered = initialData.filter((item) => {
+      // Apply category, type, and owner filters
       const matchesCategory =
         !selectedCategory || item.Category === selectedCategory;
       const matchesType =
         !selectedType || item["Borrowable/Consumable"] === selectedType;
       const matchesOwner = !selectedOwner || item.Owner === selectedOwner;
-      return matchesCategory && matchesType && matchesOwner;
+
+      // Apply search filter
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch =
+        !searchQuery ||
+        item["Tool/Supply"].toLowerCase().includes(searchLower) ||
+        (item.Description &&
+          item.Description.toLowerCase().includes(searchLower));
+
+      return matchesCategory && matchesType && matchesOwner && matchesSearch;
     });
     setFilteredItems(filtered);
-  }, [selectedCategory, selectedType, selectedOwner, initialData]);
+  }, [selectedCategory, selectedType, selectedOwner, searchQuery, initialData]);
 
   const handleFilterChange = (
     category: string,
@@ -79,6 +91,7 @@ export default function ItemLibrary({
       <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
         Item Library
       </h1>
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <ItemFilters
         categories={categories}
         types={types}
