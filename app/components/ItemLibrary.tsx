@@ -252,7 +252,7 @@ export default function ItemLibrary({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 mt-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                   >
-                    <span>View Additional Information</span>
+                    <span>View Link</span>
                     <svg
                       className="w-4 h-4"
                       fill="none"
