@@ -227,14 +227,14 @@ export default function ItemLibrary({
                     </span>
                   )}
                 </p>
-                <p className="flex items-center gap-2">
+                {/* <p className="flex items-center gap-2">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Location:
                   </span>
                   <span className="text-gray-900 dark:text-white">
                     {item.Location}
                   </span>
-                </p>
+                </p> */}
                 {item.Description && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <p className="text-gray-700 dark:text-gray-300">
