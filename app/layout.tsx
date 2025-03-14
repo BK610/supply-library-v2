@@ -25,9 +25,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900`}
       >
-        {children}
+        <main className="flex-grow">{children}</main>
+        <footer className="w-full py-4 text-center text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+          Built by{" "}
+          <a
+            href="https://www.baileykane.co?ref=supplylibrary"
+            target="_blank"
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            Bailey Kane
+          </a>
+          , for friends
+        </footer>
       </body>
     </html>
   );
