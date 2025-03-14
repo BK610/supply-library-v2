@@ -16,9 +16,9 @@ interface ItemLibraryItem {
   "Usage Notes": string;
 }
 
-function isPhoneNumber(str: string): boolean {
-  return /^\+?[\d\s-()]+$/.test(str);
-}
+// function isPhoneNumber(str: string): boolean {
+//   return /^\+?[\d\s-()]+$/.test(str);
+// }
 
 // Predefined color combinations for dynamic assignment
 const colorSchemes = [
@@ -210,7 +210,7 @@ export default function ItemLibrary({
                     {item.Owner}
                   </span>
                 </p>
-                <p className="flex items-center gap-2">
+                {/* <p className="flex items-center gap-2">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Contact:
                   </span>
@@ -226,7 +226,7 @@ export default function ItemLibrary({
                       {item["Contact Info"]}
                     </span>
                   )}
-                </p>
+                </p> */}
                 {/* <p className="flex items-center gap-2">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Location:
