@@ -158,9 +158,14 @@ export default function ItemLibrary({
 
   return (
     <div className="min-h-screen p-8 pb-20 gap-8 sm:p-20 bg-gray-50 dark:bg-gray-900">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
-        Item Library
-      </h1>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
+          Supply Library
+        </h1>
+        <p className="text-gray-700 dark:text-gray-400">
+          A little friendly neighborhood library... of supplies!
+        </p>
+      </div>
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <ItemFilters
         categories={categories}
