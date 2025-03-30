@@ -176,6 +176,9 @@ export default function ItemLibrary({
         selectedOwner={selectedOwner}
         onFilterChange={handleFilterChange}
       />
+      <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-300">
+        Results
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredItems.map((item, index) => {
           const categoryColor = getColor(item.Category, categoryColors);
@@ -185,7 +188,7 @@ export default function ItemLibrary({
             <div
               key={index}
               tabIndex={0} // Preserves natural tab order of the page, but still enables tabbing
-              className="p-6 transition-all shadow-sm hover:shadow-lg focus:shadow-xl
+              className="p-6 rounded-sm transition-all duration-75 shadow-sm hover:shadow-lg focus:shadow-xl
               outline outline-gray-800 dark:outline-gray-300 focus:outline-blue-500 focus:outline-4
                bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-blue-50 dark:focus:bg-blue-950"
             >
