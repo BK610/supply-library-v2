@@ -176,7 +176,7 @@ export default function ItemLibrary({
         selectedOwner={selectedOwner}
         onFilterChange={handleFilterChange}
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item, index) => {
           const categoryColor = getColor(item.Category, categoryColors);
           const typeColor = getColor(item["Borrowable/Consumable"], typeColors);
@@ -184,7 +184,7 @@ export default function ItemLibrary({
           return (
             <div
               key={index}
-              className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800"
+              className="border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800"
             >
               <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
                 {item["Tool/Supply"]}
