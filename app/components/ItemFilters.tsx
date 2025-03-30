@@ -20,7 +20,7 @@ export default function ItemFilters({
   onFilterChange,
 }: ItemFiltersProps) {
   return (
-    <div className="flex flex-wrap rounded-xs gap-4 mb-6 p-4 bg-white dark:bg-gray-800 shadow-sm outline outline-gray-700 dark:outline-gray-300">
+    <div className="flex flex-wrap rounded-xs gap-4 mb-6 p-4 bg-white dark:bg-gray-800 shadow-sm outline outline-gray-300 dark:outline-gray-700">
       <div className="flex-1 min-w-[200px]">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Category

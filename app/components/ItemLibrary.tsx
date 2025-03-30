@@ -189,7 +189,7 @@ export default function ItemLibrary({
               key={index}
               tabIndex={0} // Preserves natural tab order of the page, but still enables tabbing
               className="p-6 rounded-sm transition-all duration-75 shadow-sm hover:shadow-lg focus:shadow-xl
-              outline outline-gray-800 dark:outline-gray-300 focus:outline-blue-500 focus:outline-4
+              outline outline-gray-300 dark:outline-gray-700 focus:outline-blue-500 focus:outline-4
                bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:bg-blue-50 dark:focus:bg-blue-950"
             >
               <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
