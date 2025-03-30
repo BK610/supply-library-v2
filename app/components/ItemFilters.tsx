@@ -20,7 +20,7 @@ export default function ItemFilters({
   onFilterChange,
 }: ItemFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-4 mb-8 p-4 bg-white dark:bg-gray-800 shadow-sm">
+    <div className="flex flex-wrap gap-4 mb-8 p-4 bg-white dark:bg-gray-800 shadow-sm outline outline-gray-700 dark:outline-gray-300">
       <div className="flex-1 min-w-[200px]">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Category
@@ -30,7 +30,7 @@ export default function ItemFilters({
           onChange={(e) =>
             onFilterChange(e.target.value, selectedType, selectedOwner)
           }
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full outline outline-gray-300 dark:outline-gray-700 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Categories</option>
           {categories.sort().map((category) => (
@@ -49,7 +49,7 @@ export default function ItemFilters({
           onChange={(e) =>
             onFilterChange(selectedCategory, e.target.value, selectedOwner)
           }
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full outline outline-gray-300 dark:outline-gray-700 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Types</option>
           {types.sort().map((type) => (
@@ -68,7 +68,7 @@ export default function ItemFilters({
           onChange={(e) =>
             onFilterChange(selectedCategory, selectedType, e.target.value)
           }
-          className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full outline outline-gray-300 dark:outline-gray-700 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Owners</option>
           {owners.sort().map((owner) => (
