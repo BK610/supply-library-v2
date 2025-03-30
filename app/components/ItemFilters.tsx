@@ -33,7 +33,7 @@ export default function ItemFilters({
           className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Categories</option>
-          {categories.map((category) => (
+          {categories.sort().map((category) => (
             <option key={category} value={category}>
               {category}
             </option>
@@ -52,7 +52,7 @@ export default function ItemFilters({
           className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Types</option>
-          {types.map((type) => (
+          {types.sort().map((type) => (
             <option key={type} value={type}>
               {type}
             </option>
@@ -71,7 +71,7 @@ export default function ItemFilters({
           className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Owners</option>
-          {owners.map((owner) => (
+          {owners.sort().map((owner) => (
             <option key={owner} value={owner}>
               {owner}
             </option>
