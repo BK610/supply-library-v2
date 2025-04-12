@@ -15,6 +15,7 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        autoFocus
         placeholder="Search by tool name or description..."
         className="w-full rounded-md px-4 py-2 pl-10 outline dark:outline-gray-700 outline-gray-400 hover:outline-gray-600 dark:hover:outline-gray-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-2 focus:outline-blue-500 hover:focus:outline-blue-500"
       />
