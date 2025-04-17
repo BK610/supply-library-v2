@@ -1,19 +1,8 @@
 import { importCSVDataAsJson } from "@/lib/sheetsConnector";
-import ItemLibrary from "./components/ItemLibrary";
+import ItemLibrary from "@/components/ItemLibrary";
+import { ItemLibraryItem } from "@/types/ItemLibraryItem";
 
 export const revalidate = 60;
-
-interface ItemLibraryItem {
-  "Tool/Supply": string;
-  Category: string;
-  "Borrowable/Consumable": string;
-  Owner: string;
-  "Contact Info": string;
-  Location: string;
-  Description: string;
-  "Link/Image": string;
-  "Usage Notes": string;
-}
 
 async function getItemLibraryData(): Promise<{
   data: Array<ItemLibraryItem>;
