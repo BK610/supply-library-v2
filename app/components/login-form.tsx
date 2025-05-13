@@ -11,12 +11,14 @@ import {
 } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { signUp, AuthError } from "@/lib/auth";
+import { signUp, signIn, AuthError } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
@@ -32,33 +34,30 @@ export function LoginForm({
     e.preventDefault();
     setError(null);
     setFormSuccess(null);
+    setIsLoading(true);
 
-    // For sign up, validate form inputs
-    if (!isLogin) {
-      // Basic validation
-      if (!username.trim()) {
-        setError({ message: "Username is required" });
-        return;
-      }
+    try {
+      if (!isLogin) {
+        // Basic validation for signup
+        if (!username.trim()) {
+          setError({ message: "Username is required" });
+          setIsLoading(false);
+          return;
+        }
 
-      if (!email.trim()) {
-        setError({ message: "Email is required" });
-        return;
-      }
+        if (!email.trim()) {
+          setError({ message: "Email is required" });
+          setIsLoading(false);
+          return;
+        }
 
-      if (password.length < 6) {
-        setError({ message: "Password must be at least 6 characters" });
-        return;
-      }
+        if (password !== confirmPassword) {
+          setError({ message: "Passwords do not match" });
+          setIsLoading(false);
+          return;
+        }
 
-      if (password !== confirmPassword) {
-        setError({ message: "Passwords do not match" });
-        return;
-      }
-
-      // Process sign up
-      setIsLoading(true);
-      try {
+        // Process sign up
         const result = await signUp(email, password, username);
 
         if (result.error) {
@@ -76,15 +75,26 @@ export function LoginForm({
           // Switch to login form after signup success
           setIsLogin(true);
         }
-      } catch (err) {
-        console.error("Error during signup:", err);
-        setError({ message: "An unexpected error occurred" });
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Handle login
+        const result = await signIn(email, password);
+
+        if (result.error) {
+          setError(result.error);
+        } else {
+          // Login successful, redirect to dashboard or home page
+          setFormSuccess("Login successful!");
+          router.push("/app"); // Update this to your desired redirect path
+        }
       }
-    } else {
-      // Handle login (we'll implement this later)
-      console.log("Login not implemented yet");
+    } catch (err) {
+      console.error(
+        isLogin ? "Error during login:" : "Error during signup:",
+        err
+      );
+      setError({ message: "An unexpected error occurred" });
+    } finally {
+      setIsLoading(false);
     }
   }
 
