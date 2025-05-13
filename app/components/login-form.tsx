@@ -183,7 +183,7 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               {isLogin
-                ? "Don&apos;t have an account? "
+                ? "Don't have an account? "
                 : "Already have an account? "}
               <button
                 type="button"
