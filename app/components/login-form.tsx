@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import { useState, FormEvent } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
