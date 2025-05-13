@@ -184,8 +184,21 @@ export async function resetPassword(
   success: boolean;
 }> {
   try {
+    // Get the site URL for the reset password link
+    let siteUrl = "";
+    if (typeof window !== "undefined") {
+      // In the browser, we can get the current origin
+      siteUrl = window.location.origin;
+    } else {
+      // In a server context, use the environment variable or a default
+      siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
+    }
+
+    // Set the redirect URL to our reset-password page
+    const resetRedirectTo = redirectTo || `${siteUrl}/reset-password`;
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo || window.location.origin + "/reset-password",
+      redirectTo: resetRedirectTo,
     });
 
     if (error) {
