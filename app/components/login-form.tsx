@@ -12,7 +12,6 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { signUp, AuthError } from "@/lib/auth";
-import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
@@ -22,7 +21,6 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
-  const router = useRouter();
 
   // Form fields
   const [email, setEmail] = useState("");
