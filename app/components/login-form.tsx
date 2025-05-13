@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
   Card,
@@ -11,12 +11,84 @@ import {
 } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
+import { signUp, AuthError } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<AuthError | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Form fields
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setFormSuccess(null);
+
+    // For sign up, validate form inputs
+    if (!isLogin) {
+      // Basic validation
+      if (!username.trim()) {
+        setError({ message: "Username is required" });
+        return;
+      }
+
+      if (!email.trim()) {
+        setError({ message: "Email is required" });
+        return;
+      }
+
+      if (password.length < 6) {
+        setError({ message: "Password must be at least 6 characters" });
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError({ message: "Passwords do not match" });
+        return;
+      }
+
+      // Process sign up
+      setIsLoading(true);
+      try {
+        const result = await signUp(email, password, username);
+
+        if (result.error) {
+          setError(result.error);
+        } else {
+          // Success - clear form and show success message
+          setFormSuccess(
+            "Account created successfully! Please check your email to confirm your account before logging in."
+          );
+          // Reset form
+          setEmail("");
+          setPassword("");
+          setConfirmPassword("");
+          setUsername("");
+          // Switch to login form after signup success
+          setIsLogin(true);
+        }
+      } catch (err) {
+        console.error("Error during signup:", err);
+        setError({ message: "An unexpected error occurred" });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Handle login (we'll implement this later)
+      console.log("Login not implemented yet");
+    }
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -32,7 +104,19 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
+              {error.message}
+            </div>
+          )}
+
+          {formSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-md text-sm">
+              {formSuccess}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               {!isLogin && (
                 <div className="grid gap-3">
@@ -42,6 +126,8 @@ export function LoginForm({
                     type="text"
                     placeholder="johndoe"
                     required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
               )}
@@ -52,6 +138,8 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-3">
@@ -66,17 +154,29 @@ export function LoginForm({
                     </a>
                   )}
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               {!isLogin && (
                 <div className="grid gap-3">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input id="confirmPassword" type="password" required />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
                 </div>
               )}
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  {isLogin ? "Login" : "Sign Up"}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
                 </Button>
                 {/* <Button variant="outline" className="w-full">
                   Login with Google
@@ -89,7 +189,11 @@ export function LoginForm({
                 : "Already have an account? "}
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError(null);
+                  setFormSuccess(null);
+                }}
                 className="underline underline-offset-4 text-primary"
               >
                 {isLogin ? "Sign up" : "Login"}
