@@ -11,22 +11,6 @@ export async function signUp(
   username: string
 ): Promise<{ error: AuthError | null; success: boolean }> {
   try {
-    // First check if the email is already in use via auth
-    const { error: emailCheckError } = await supabase.auth.signInWithOtp({
-      email: email,
-      options: {
-        shouldCreateUser: false, // Don't create a user, just check if email exists
-      },
-    });
-
-    // If there's no error when trying with OTP for a non-existent user, it means email exists
-    if (!emailCheckError) {
-      return {
-        error: { message: "A user with this email already exists" },
-        success: false,
-      };
-    }
-
     // Check if username is already taken
     const { data: existingUsernames, error: usernameCheckError } =
       await supabase
@@ -47,7 +31,7 @@ export async function signUp(
     }
 
     // Attempt to create the user - our database trigger will create the profile
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -63,6 +47,19 @@ export async function signUp(
           message: error.message || "Failed to create account",
           code: error.code,
         },
+        success: false,
+      };
+    }
+
+    // Check if user already exists by examining the identities array
+    // An empty identities array indicates the email is already registered
+    if (
+      data.user &&
+      data.user.identities &&
+      data.user.identities.length === 0
+    ) {
+      return {
+        error: { message: "A user with this email already exists" },
         success: false,
       };
     }
