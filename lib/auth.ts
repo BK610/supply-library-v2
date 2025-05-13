@@ -170,3 +170,36 @@ export async function getCurrentSession() {
     };
   }
 }
+
+export async function resetPassword(
+  email: string,
+  redirectTo?: string
+): Promise<{
+  error: AuthError | null;
+  success: boolean;
+}> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo || window.location.origin + "/reset-password",
+    });
+
+    if (error) {
+      return {
+        error: {
+          message:
+            error.message || "Failed to send password reset instructions",
+          code: error.code,
+        },
+        success: false,
+      };
+    }
+
+    return { error: null, success: true };
+  } catch (err) {
+    console.error("Password reset error:", err);
+    return {
+      error: { message: "An unexpected error occurred" },
+      success: false,
+    };
+  }
+}
