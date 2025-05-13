@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Session, User } from "@supabase/supabase-js";
 
 export type AuthError = {
   message: string;
@@ -80,7 +81,7 @@ export async function signIn(
 ): Promise<{
   error: AuthError | null;
   success: boolean;
-  session: any | null;
+  session: Session | null;
 }> {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -141,7 +142,11 @@ export async function signOut(): Promise<{
   }
 }
 
-export async function getCurrentSession() {
+export async function getCurrentSession(): Promise<{
+  error: AuthError | null;
+  session: Session | null;
+  user: User | null;
+}> {
   try {
     const { data, error } = await supabase.auth.getSession();
 

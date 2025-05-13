@@ -3,12 +3,13 @@ import { getCurrentSession, signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
+import { User } from "@supabase/supabase-js";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
