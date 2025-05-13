@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "@/lib/supabase";
 
 export type AuthError = {
   message: string;
@@ -12,13 +12,12 @@ export async function signUp(
 ): Promise<{ error: AuthError | null; success: boolean }> {
   try {
     // First check if the email is already in use via auth
-    const { data: emailCheck, error: emailCheckError } =
-      await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: false, // Don't create a user, just check if email exists
-        },
-      });
+    const { error: emailCheckError } = await supabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        shouldCreateUser: false, // Don't create a user, just check if email exists
+      },
+    });
 
     // If there's no error when trying with OTP for a non-existent user, it means email exists
     if (!emailCheckError) {
