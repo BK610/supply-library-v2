@@ -1,4 +1,4 @@
-import { ItemLibraryItem as ItemLibraryItemType } from "../types/ItemLibraryItem";
+import { ItemLibraryItem as ItemLibraryItemType } from "@/types/ItemLibraryItem";
 
 interface ItemLibraryItemProps {
   item: ItemLibraryItemType;

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ItemFilters from "./ItemFilters";
-import SearchBar from "./SearchBar";
-import ItemLibraryItem from "./ItemLibraryItem";
-import { ItemLibraryItem as ItemLibraryItemType } from "../types/ItemLibraryItem";
+import ItemFilters from "@/components/ItemFilters";
+import SearchBar from "@/components/SearchBar";
+import ItemLibraryItem from "@/components/ItemLibraryItem";
+import { ItemLibraryItem as ItemLibraryItemType } from "@/types/ItemLibraryItem";
 
 // function isPhoneNumber(str: string): boolean {
 //   return /^\+?[\d\s-()]+$/.test(str);
