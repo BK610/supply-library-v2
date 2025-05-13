@@ -73,3 +73,100 @@ export async function signUp(
     };
   }
 }
+
+export async function signIn(
+  email: string,
+  password: string
+): Promise<{
+  error: AuthError | null;
+  success: boolean;
+  session: any | null;
+}> {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return {
+        error: {
+          message: error.message || "Failed to sign in",
+          code: error.code,
+        },
+        success: false,
+        session: null,
+      };
+    }
+
+    return {
+      error: null,
+      success: true,
+      session: data.session,
+    };
+  } catch (err) {
+    console.error("Sign in error:", err);
+    return {
+      error: { message: "An unexpected error occurred" },
+      success: false,
+      session: null,
+    };
+  }
+}
+
+export async function signOut(): Promise<{
+  error: AuthError | null;
+  success: boolean;
+}> {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return {
+        error: {
+          message: error.message || "Failed to sign out",
+          code: error.code,
+        },
+        success: false,
+      };
+    }
+
+    return { error: null, success: true };
+  } catch (err) {
+    console.error("Sign out error:", err);
+    return {
+      error: { message: "An unexpected error occurred" },
+      success: false,
+    };
+  }
+}
+
+export async function getCurrentSession() {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      return {
+        error: {
+          message: error.message || "Failed to get session",
+          code: error.code,
+        },
+        session: null,
+        user: null,
+      };
+    }
+
+    return {
+      error: null,
+      session: data.session,
+      user: data.session?.user || null,
+    };
+  } catch (err) {
+    console.error("Get session error:", err);
+    return {
+      error: { message: "An unexpected error occurred" },
+      session: null,
+      user: null,
+    };
+  }
+}
