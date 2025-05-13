@@ -235,7 +235,7 @@ export function LoginForm({
             <div className="mt-4 text-center text-sm">
               {formView === "login" ? (
                 <>
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <button
                     type="button"
                     onClick={() => {
