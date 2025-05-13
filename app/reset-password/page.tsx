@@ -133,10 +133,6 @@ export default function ResetPassword() {
     }
   };
 
-  const goToLogin = () => {
-    router.push("/login");
-  };
-
   return (
     <div className="flex justify-center items-center min-h-screen p-4">
       <Card className="w-full max-w-md">
