@@ -11,15 +11,17 @@ import {
 } from "@/app/components/ui/card";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { signUp, signIn, AuthError } from "@/lib/auth";
+import { signUp, signIn, resetPassword, AuthError } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+
+type FormView = "login" | "signup" | "reset";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const [isLogin, setIsLogin] = useState(true);
+  const [formView, setFormView] = useState<FormView>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export function LoginForm({
     setIsLoading(true);
 
     try {
-      if (!isLogin) {
+      if (formView === "signup") {
         // Basic validation for signup
         if (!username.trim()) {
           setError({ message: "Username is required" });
@@ -73,9 +75,9 @@ export function LoginForm({
           setConfirmPassword("");
           setUsername("");
           // Switch to login form after signup success
-          setIsLogin(true);
+          setFormView("login");
         }
-      } else {
+      } else if (formView === "login") {
         // Handle login
         const result = await signIn(email, password);
 
@@ -86,29 +88,59 @@ export function LoginForm({
           setFormSuccess("Login successful!");
           router.push("/app"); // Update this to your desired redirect path
         }
+      } else if (formView === "reset") {
+        // Handle password reset
+        if (!email.trim()) {
+          setError({ message: "Email is required" });
+          setIsLoading(false);
+          return;
+        }
+
+        const result = await resetPassword(email);
+
+        if (result.error) {
+          setError(result.error);
+        } else {
+          setFormSuccess(
+            "Password reset instructions have been sent to your email."
+          );
+          setEmail("");
+        }
       }
     } catch (err) {
-      console.error(
-        isLogin ? "Error during login:" : "Error during signup:",
-        err
-      );
+      console.error("Error during form submission:", err);
       setError({ message: "An unexpected error occurred" });
     } finally {
       setIsLoading(false);
     }
   }
 
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setUsername("");
+    setError(null);
+    setFormSuccess(null);
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle>
-            {isLogin ? "Login to your account" : "Create an account"}
+            {formView === "login"
+              ? "Login to your account"
+              : formView === "signup"
+              ? "Create an account"
+              : "Reset your password"}
           </CardTitle>
           <CardDescription>
-            {isLogin
+            {formView === "login"
               ? "Enter your email below to login to your account"
-              : "Fill in your details to create a new account"}
+              : formView === "signup"
+              ? "Fill in your details to create a new account"
+              : "Enter your email and we'll send you instructions to reset your password"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,7 +158,7 @@ export function LoginForm({
 
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
-              {!isLogin && (
+              {formView === "signup" && (
                 <div className="grid gap-3">
                   <Label htmlFor="username">Username</Label>
                   <Input
@@ -150,27 +182,33 @@ export function LoginForm({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  {isLogin && (
-                    <a
-                      href="#"
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  )}
+              {formView !== "reset" && (
+                <div className="grid gap-3">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    {formView === "login" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormView("reset");
+                          resetForm();
+                        }}
+                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                      >
+                        Forgot your password?
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {!isLogin && (
+              )}
+              {formView === "signup" && (
                 <div className="grid gap-3">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <Input
@@ -184,28 +222,60 @@ export function LoginForm({
               )}
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
+                  {isLoading
+                    ? "Processing..."
+                    : formView === "login"
+                    ? "Login"
+                    : formView === "signup"
+                    ? "Sign Up"
+                    : "Send Reset Link"}
                 </Button>
-                {/* <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button> */}
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
-              {isLogin
-                ? "Don't have an account? "
-                : "Already have an account? "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError(null);
-                  setFormSuccess(null);
-                }}
-                className="underline underline-offset-4 text-primary"
-              >
-                {isLogin ? "Sign up" : "Login"}
-              </button>
+              {formView === "login" ? (
+                <>
+                  Don't have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormView("signup");
+                      resetForm();
+                    }}
+                    className="underline underline-offset-4 text-primary"
+                  >
+                    Sign up
+                  </button>
+                </>
+              ) : formView === "signup" ? (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormView("login");
+                      resetForm();
+                    }}
+                    className="underline underline-offset-4 text-primary"
+                  >
+                    Login
+                  </button>
+                </>
+              ) : (
+                <>
+                  Remember your password?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormView("login");
+                      resetForm();
+                    }}
+                    className="underline underline-offset-4 text-primary"
+                  >
+                    Back to login
+                  </button>
+                </>
+              )}
             </div>
           </form>
         </CardContent>
