@@ -86,7 +86,11 @@ export default function App(): React.ReactElement {
   };
 
   const handleCreateCommunity = async () => {
-    if (!user) return;
+    if (!user) {
+      setCreateCommunityError("You must be logged in to create a community");
+      return;
+    }
+
     if (!newCommunityName.trim()) {
       setCreateCommunityError("Community name is required");
       return;
@@ -103,6 +107,7 @@ export default function App(): React.ReactElement {
       );
 
       if (error) {
+        console.error("Error creating community:", error);
         setCreateCommunityError(error);
         setIsCreatingCommunity(false);
         return;
@@ -117,11 +122,31 @@ export default function App(): React.ReactElement {
         setNewCommunityDescription("");
         setIsDialogOpen(false);
       }
-    } catch (error) {
-      console.error("Error creating community:", error);
-      setCreateCommunityError("Failed to create community");
+    } catch (error: any) {
+      console.error("Unexpected error creating community:", error);
+      setCreateCommunityError(error?.message || "Failed to create community");
     } finally {
       setIsCreatingCommunity(false);
+    }
+  };
+
+  // Function to refresh the list of communities
+  const refreshCommunities = async () => {
+    if (!user) return;
+
+    try {
+      const { communities: updatedCommunities, error } =
+        await getUserCommunities(user.id);
+      if (error) {
+        console.error("Error refreshing communities:", error);
+        return;
+      }
+
+      if (updatedCommunities) {
+        setCommunities(updatedCommunities);
+      }
+    } catch (error) {
+      console.error("Unexpected error refreshing communities:", error);
     }
   };
 
@@ -204,9 +229,9 @@ export default function App(): React.ReactElement {
                     </div>
 
                     {createCommunityError && (
-                      <p className="text-red-500 text-sm">
+                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
                         {createCommunityError}
-                      </p>
+                      </div>
                     )}
                   </div>
 
@@ -275,9 +300,9 @@ export default function App(): React.ReactElement {
                     </div>
 
                     {createCommunityError && (
-                      <p className="text-red-500 text-sm">
+                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
                         {createCommunityError}
-                      </p>
+                      </div>
                     )}
                   </div>
 
