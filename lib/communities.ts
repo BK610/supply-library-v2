@@ -11,12 +11,69 @@ export interface Community {
   created_by: string;
 }
 
+export interface Profile {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+// Ensure the user profile exists before proceeding
+async function ensureUserProfile(user: User): Promise<{ error?: string }> {
+  try {
+    // Check if the profile exists
+    const { data: profile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // If profile exists, we're good
+    if (profile) return {};
+
+    // If there was an error other than "not found", return it
+    if (fetchError && !fetchError.message.includes("not found")) {
+      console.error("Error checking profile:", fetchError);
+      return { error: fetchError.message };
+    }
+
+    // Profile doesn't exist, create it
+    const username =
+      user.user_metadata?.username || `user_${user.id.substring(0, 8)}`;
+
+    const { error: insertError } = await supabase.from("profiles").insert({
+      id: user.id,
+      username,
+      email: user.email || "",
+      avatar_url: user.user_metadata?.avatar_url || null,
+    });
+
+    if (insertError) {
+      console.error("Error creating profile:", insertError);
+      return { error: insertError.message };
+    }
+
+    return {};
+  } catch (error) {
+    console.error("Unexpected error in ensureUserProfile:", error);
+    return { error: "Failed to ensure user profile exists" };
+  }
+}
+
 export async function createCommunity(
   name: string,
   user: User,
   description?: string
 ): Promise<{ community?: Community; error?: string }> {
   try {
+    // First ensure the user profile exists
+    const { error: profileError } = await ensureUserProfile(user);
+
+    if (profileError) {
+      return { error: `Profile error: ${profileError}` };
+    }
+
     const { data, error } = await supabase
       .from("communities")
       .insert({
