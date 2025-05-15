@@ -258,7 +258,7 @@ export default function App(): React.ReactElement {
           </div>
         ) : (
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Your Communities</h2>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
