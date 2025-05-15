@@ -29,7 +29,6 @@ import { InvitationsList } from "@/app/components/InvitationsList";
 export default function App(): React.ReactElement {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [communities, setCommunities] = useState<Community[]>([]);
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
@@ -86,27 +85,6 @@ export default function App(): React.ReactElement {
 
     checkAuth();
   }, [router]);
-
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      const { error, success } = await signOut();
-
-      if (error) {
-        console.error("Error logging out:", error);
-        setIsLoggingOut(false);
-        return;
-      }
-
-      if (success) {
-        // Redirect to login page after successful logout
-        router.push("/login");
-      }
-    } catch (err) {
-      console.error("Unexpected error during logout:", err);
-      setIsLoggingOut(false);
-    }
-  };
 
   const handleInvitationResponded = (
     invitationId: string,
