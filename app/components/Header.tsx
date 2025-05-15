@@ -76,7 +76,7 @@ export default function Header(): React.ReactElement {
                   Log in
                 </Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/login?view=signup">
                 <Button>Join us</Button>
               </Link>
             </>

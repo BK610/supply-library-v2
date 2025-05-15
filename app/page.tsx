@@ -89,7 +89,7 @@ export default function Home(): React.ReactElement {
             <h3 className="text-2xl font-semibold mb-6">
               Ready to start sharing?
             </h3>
-            <Link href="/login">
+            <Link href="/login?view=signup">
               <Button size="lg" className="px-8">
                 Create your account
               </Button>
