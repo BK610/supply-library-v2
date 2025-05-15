@@ -288,7 +288,7 @@ export default function App(): React.ReactElement {
             emptyMessage={
               <div>
                 <h2 className="text-xl font-semibold mb-4">
-                  You're not part of any communities yet
+                  You&apos;re not part of any communities yet
                 </h2>
                 <p className="text-gray-600 mb-6">
                   Communities let you organize and share items with others.

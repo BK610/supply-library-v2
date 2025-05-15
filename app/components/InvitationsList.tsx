@@ -88,7 +88,7 @@ export function InvitationsList({
             <CardHeader className="pb-2">
               <CardTitle>{invitation.community?.name}</CardTitle>
               <CardDescription>
-                You've been invited to join this community
+                You&apos;ve been invited to join this community
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-2">

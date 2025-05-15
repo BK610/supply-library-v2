@@ -28,7 +28,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -74,9 +73,9 @@ export default function CommunityPage() {
   const [community, setCommunity] = useState<Community | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [members, setMembers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUserAdmin, setIsUserAdmin] = useState(false);
+  const [isUserAdmin, setIsUserAdmin] = useState<boolean>(false);
 
   // Add item dialog state
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
