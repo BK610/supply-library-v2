@@ -439,20 +439,20 @@ export async function respondToInvitation(
       return { success: false, error: inviteError.message };
     }
 
-    // Get the user's email
-    const { data: userProfile, error: profileError } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("id", userId)
-      .single();
+    // Get the user's email using our secure function
+    const { data: authData, error: authError } = await supabase.rpc(
+      "get_auth_email"
+    );
 
-    if (profileError) {
-      console.error("Error fetching user profile:", profileError);
-      return { success: false, error: profileError.message };
+    if (authError) {
+      console.error("Error fetching user email:", authError);
+      return { success: false, error: authError.message };
     }
 
+    const userEmail = authData;
+
     // Verify that the invitation was sent to this user's email
-    if (userProfile.email !== invitation.email) {
+    if (userEmail !== invitation.email) {
       return {
         success: false,
         error: "This invitation was not sent to your email address",
