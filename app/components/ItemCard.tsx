@@ -1,4 +1,9 @@
 import { Item } from "@/lib/items";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/app/components/ui/avatar";
 
 interface ItemCardProps {
   item: Item;
@@ -18,7 +23,23 @@ export function ItemCard({ item, onClick, className = "" }: ItemCardProps) {
       onClick={onClick}
       tabIndex={0}
     >
-      <h3 className="font-semibold">{item.name}</h3>
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="font-semibold">{item.name}</h3>
+        {item.owner_profile && (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Avatar className="h-6 w-6">
+              <AvatarImage
+                src={item.owner_profile.avatar_url || undefined}
+                alt={item.owner_profile.username}
+              />
+              <AvatarFallback>
+                {item.owner_profile.username?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <span>{item.owner_profile.username}</span>
+          </div>
+        )}
+      </div>
       {item.description && (
         <p className="text-gray-600 text-sm mt-1">{item.description}</p>
       )}
