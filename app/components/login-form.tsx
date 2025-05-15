@@ -12,7 +12,7 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { signUp, signIn, resetPassword, AuthError } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type FormView = "login" | "signup" | "reset";
 
@@ -21,7 +21,13 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const [formView, setFormView] = useState<FormView>("login");
+  const searchParams = useSearchParams();
+  const formViewParam = searchParams.get("view");
+
+  const [formView, setFormView] = useState<FormView>(
+    formViewParam === "signup" ? "signup" : "login"
+  );
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
