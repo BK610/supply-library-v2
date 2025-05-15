@@ -190,9 +190,7 @@ export default function App(): React.ReactElement {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
+      <div className="flex-1 flex items-center justify-center">Loading...</div>
     );
   }
 

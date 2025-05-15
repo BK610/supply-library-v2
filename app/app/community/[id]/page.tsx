@@ -392,7 +392,7 @@ export default function CommunityPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex-1 flex items-center justify-center">
         <p>Loading community data...</p>
       </div>
     );
@@ -400,7 +400,7 @@ export default function CommunityPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
           {error}
         </div>
@@ -413,7 +413,7 @@ export default function CommunityPage() {
 
   if (!community) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
         <p className="mb-4">
           Community not found or you don&apos;t have access.
         </p>
