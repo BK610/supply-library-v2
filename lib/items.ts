@@ -13,6 +13,10 @@ export interface Item {
   owner_id: string;
   created_at: string;
   updated_at: string;
+  owner_profile?: {
+    username: string;
+    avatar_url: string | null;
+  };
 }
 
 export interface Member {
@@ -52,10 +56,10 @@ export async function getCommunityItems(
     // Extract the item IDs
     const itemIds = communityItemsData.map((item) => item.item_id);
 
-    // Now fetch the actual items
+    // Now fetch the actual items with owner profiles
     const { data: items, error: itemsError } = await supabase
       .from("items")
-      .select("*")
+      .select("*, profiles:owner_id(username, avatar_url)")
       .in("id", itemIds);
 
     if (itemsError) {
@@ -63,7 +67,14 @@ export async function getCommunityItems(
       return { error: itemsError.message };
     }
 
-    return { items: items as Item[] };
+    // Transform the result to match our Item interface
+    const transformedItems = items.map((item: any) => ({
+      ...item,
+      owner_profile: item.profiles,
+      profiles: undefined, // Remove the profiles property
+    }));
+
+    return { items: transformedItems as Item[] };
   } catch (error) {
     console.error("Unexpected error fetching community items:", error);
     return { error: "Failed to fetch community items" };
@@ -81,7 +92,7 @@ export async function searchUserItems(
   try {
     let query = supabase
       .from("items")
-      .select("*")
+      .select("*, profiles:owner_id(username, avatar_url)")
       .eq("owner_id", userId)
       .ilike("name", `%${searchQuery}%`);
 
@@ -220,6 +231,21 @@ export async function createItem(
       // Try to clean up by deleting the item we just created
       await supabase.from("items").delete().eq("id", item.id);
       return { error: communityItemError.message };
+    }
+
+    // Get the owner profile
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching owner profile:", profileError);
+      // We'll return the item even without profile info
+    } else if (profileData) {
+      // Add owner profile to the item
+      item.owner_profile = profileData;
     }
 
     return { item };
