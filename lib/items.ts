@@ -71,6 +71,104 @@ export async function getCommunityItems(
 }
 
 /**
+ * Search for items owned by a user
+ */
+export async function searchUserItems(
+  userId: string,
+  searchQuery: string,
+  communityId?: string
+): Promise<{ items?: Item[]; error?: string }> {
+  try {
+    let query = supabase
+      .from("items")
+      .select("*")
+      .eq("owner_id", userId)
+      .ilike("name", `%${searchQuery}%`);
+
+    // If communityId is provided, exclude items already in the community
+    if (communityId) {
+      // Get items that are already in the community
+      const { data: communityItemsData, error: communityItemsError } =
+        await supabase
+          .from("community_items")
+          .select("item_id")
+          .eq("community_id", communityId);
+
+      if (communityItemsError) {
+        console.error(
+          "Error fetching community item IDs:",
+          communityItemsError
+        );
+        return { error: communityItemsError.message };
+      }
+
+      if (communityItemsData && communityItemsData.length > 0) {
+        // Extract the item IDs
+        const communityItemIds = communityItemsData.map((item) => item.item_id);
+        // Exclude these items from the search results
+        query = query.not("id", "in", `(${communityItemIds.join(",")})`);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error searching user items:", error);
+      return { error: error.message };
+    }
+
+    return { items: data as Item[] };
+  } catch (error) {
+    console.error("Unexpected error searching user items:", error);
+    return { error: "Failed to search user items" };
+  }
+}
+
+/**
+ * Add an existing item to a community
+ */
+export async function addItemToCommunity(
+  itemId: string,
+  communityId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Check if item is already in community
+    const { data: existingItem, error: checkError } = await supabase
+      .from("community_items")
+      .select()
+      .eq("community_id", communityId)
+      .eq("item_id", itemId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Error checking if item exists in community:", checkError);
+      return { success: false, error: checkError.message };
+    }
+
+    if (existingItem) {
+      return { success: false, error: "Item is already in this community" };
+    }
+
+    // Add the item to the community
+    const { error } = await supabase.from("community_items").insert({
+      community_id: communityId,
+      item_id: itemId,
+      available: true,
+    });
+
+    if (error) {
+      console.error("Error adding item to community:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error adding item to community:", error);
+    return { success: false, error: "Failed to add item to community" };
+  }
+}
+
+/**
  * Create a new item and add it to a community
  */
 export async function createItem(
