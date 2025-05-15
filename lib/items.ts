@@ -68,11 +68,17 @@ export async function getCommunityItems(
     }
 
     // Transform the result to match our Item interface
-    const transformedItems = items.map((item: any) => ({
-      ...item,
-      owner_profile: item.profiles,
-      profiles: undefined, // Remove the profiles property
-    }));
+    const transformedItems = items.map(
+      (
+        item: Item & {
+          profiles?: { username: string; avatar_url: string | null };
+        }
+      ) => ({
+        ...item,
+        owner_profile: item.profiles,
+        profiles: undefined, // Remove the profiles property
+      })
+    );
 
     return { items: transformedItems as Item[] };
   } catch (error) {
@@ -129,11 +135,17 @@ export async function searchUserItems(
     }
 
     // Transform the result to match our Item interface
-    const transformedItems = data.map((item: any) => ({
-      ...item,
-      owner_profile: item.profiles,
-      profiles: undefined, // Remove the profiles property
-    }));
+    const transformedItems = data.map(
+      (
+        item: Item & {
+          profiles?: { username: string; avatar_url: string | null };
+        }
+      ) => ({
+        ...item,
+        owner_profile: item.profiles,
+        profiles: undefined, // Remove the profiles property
+      })
+    );
 
     return { items: transformedItems as Item[] };
   } catch (error) {
@@ -258,7 +270,9 @@ export async function createItem(
     return { item };
   } catch (error) {
     console.error("Unexpected error creating item:", error);
-    return { error: "Failed to create item" };
+    return {
+      error: error instanceof Error ? error.message : "Failed to create item",
+    };
   }
 }
 
@@ -267,7 +281,7 @@ export async function createItem(
  */
 export async function getCommunityMembers(
   communityId: string
-): Promise<{ members?: any[]; error?: string }> {
+): Promise<{ members?: Member[]; error?: string }> {
   try {
     const { data, error } = await supabase
       .from("community_members")
@@ -279,7 +293,20 @@ export async function getCommunityMembers(
       return { error: error.message };
     }
 
-    return { members: data };
+    // We need to transform the data to match our Member interface
+    type RawMember = {
+      member_id: string;
+      role: string;
+      profiles: Record<string, unknown>;
+    };
+    const rawData = data as unknown as RawMember[];
+    const transformedMembers = rawData.map((member) => ({
+      member_id: member.member_id,
+      role: member.role,
+      profiles: member.profiles,
+    })) as Member[];
+
+    return { members: transformedMembers };
   } catch (error) {
     console.error("Unexpected error fetching community members:", error);
     return { error: "Failed to fetch community members" };

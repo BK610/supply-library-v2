@@ -65,10 +65,13 @@ export function InvitationsList({
         // Notify parent component that the invitation has been responded to
         onInvitationResponded(invitationId, accept);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrors((prev) => ({
         ...prev,
-        [invitationId]: err?.message || "Failed to respond to invitation",
+        [invitationId]:
+          err instanceof Error
+            ? err.message
+            : "Failed to respond to invitation",
       }));
     } finally {
       // Reset the processing state

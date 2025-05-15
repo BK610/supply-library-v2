@@ -158,9 +158,11 @@ export default function App(): React.ReactElement {
         setNewCommunityDescription("");
         setIsDialogOpen(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Unexpected error creating community:", error);
-      setCreateCommunityError(error?.message || "Failed to create community");
+      setCreateCommunityError(
+        error instanceof Error ? error.message : "Failed to create community"
+      );
     } finally {
       setIsCreatingCommunity(false);
     }

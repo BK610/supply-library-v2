@@ -367,11 +367,13 @@ export async function getCommunityInvitations(
     }
 
     // Transform the data to match our interface
-    const invitations = data.map((invitation: any) => ({
-      ...invitation,
-      inviter: invitation.profiles,
-      profiles: undefined, // Remove the profiles property
-    }));
+    const invitations = data.map(
+      (invitation: Invitation & { profiles?: Profile }) => ({
+        ...invitation,
+        inviter: invitation.profiles,
+        profiles: undefined, // Remove the profiles property
+      })
+    );
 
     return { invitations: invitations as Invitation[] };
   } catch (error) {
@@ -402,13 +404,17 @@ export async function getUserInvitations(
     }
 
     // Transform the data to match our interface
-    const invitations = data.map((invitation: any) => ({
-      ...invitation,
-      community: invitation.communities,
-      inviter: invitation.profiles,
-      communities: undefined, // Remove the communities property
-      profiles: undefined, // Remove the profiles property
-    }));
+    const invitations = data.map(
+      (
+        invitation: Invitation & { communities?: Community; profiles?: Profile }
+      ) => ({
+        ...invitation,
+        community: invitation.communities,
+        inviter: invitation.profiles,
+        communities: undefined, // Remove the communities property
+        profiles: undefined, // Remove the profiles property
+      })
+    );
 
     return { invitations: invitations as Invitation[] };
   } catch (error) {

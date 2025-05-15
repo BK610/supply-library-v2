@@ -17,6 +17,7 @@ import {
   createItem,
   searchUserItems,
   addItemToCommunity,
+  Member,
 } from "@/lib/items";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
@@ -72,7 +73,7 @@ export default function CommunityPage() {
   const [user, setUser] = useState<User | null>(null);
   const [community, setCommunity] = useState<Community | null>(null);
   const [items, setItems] = useState<Item[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUserAdmin, setIsUserAdmin] = useState<boolean>(false);
@@ -218,9 +219,11 @@ export default function CommunityPage() {
       }
 
       setSearchResults(foundItems || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Unexpected error searching items:", err);
-      setAddExistingItemError(err?.message || "Failed to search items");
+      setAddExistingItemError(
+        err instanceof Error ? err.message : "Failed to search items"
+      );
     } finally {
       setIsSearching(false);
     }
@@ -258,9 +261,11 @@ export default function CommunityPage() {
         setSelectedItem(null);
         setIsAddItemDialogOpen(false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Unexpected error adding item:", err);
-      setAddExistingItemError(err?.message || "Failed to add item");
+      setAddExistingItemError(
+        err instanceof Error ? err.message : "Failed to add item"
+      );
     } finally {
       setIsAddingExistingItem(false);
     }
@@ -314,9 +319,11 @@ export default function CommunityPage() {
         setNewItemConsumable(false);
         setIsAddItemDialogOpen(false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Unexpected error creating item:", err);
-      setAddItemError(err?.message || "Failed to create item");
+      setAddItemError(
+        err instanceof Error ? err.message : "Failed to create item"
+      );
     } finally {
       setIsCreatingItem(false);
     }
@@ -373,9 +380,11 @@ export default function CommunityPage() {
         setInviteEmail("");
         setPendingInvitations([...pendingInvitations, invitation]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error inviting user:", err);
-      setInviteError(err?.message || "Failed to send invitation");
+      setInviteError(
+        err instanceof Error ? err.message : "Failed to send invitation"
+      );
     } finally {
       setIsInviting(false);
     }
@@ -405,7 +414,9 @@ export default function CommunityPage() {
   if (!community) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6">
-        <p className="mb-4">Community not found or you don't have access.</p>
+        <p className="mb-4">
+          Community not found or you don&apos;t have access.
+        </p>
         <Link href={"/app"}>
           <Button>Back to Dashboard</Button>
         </Link>
