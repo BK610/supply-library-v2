@@ -410,7 +410,7 @@ export default function CommunityPage() {
             <DialogTrigger asChild>
               <Button>Add Item</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
               <DialogHeader>
                 <DialogTitle>Add an item to this community</DialogTitle>
                 <DialogDescription>
@@ -429,7 +429,7 @@ export default function CommunityPage() {
                 </TabsList>
 
                 <TabsContent value="search" className="pt-4">
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 max-h-[60vh] overflow-y-auto pb-4">
                     <div className="flex items-end gap-2">
                       <div className="flex-1">
                         <Label htmlFor="search" className="mb-2 block">
@@ -454,7 +454,7 @@ export default function CommunityPage() {
                     </div>
 
                     {searchResults.length > 0 ? (
-                      <div className="border rounded-md divide-y max-h-[200px] overflow-auto">
+                      <div className="border rounded-md divide-y max-h-[40vh] overflow-auto">
                         {searchResults.map((item) => (
                           <div
                             key={item.id}
@@ -494,8 +494,9 @@ export default function CommunityPage() {
                     )}
 
                     {selectedItem && (
-                      <div className="flex justify-end mt-2">
+                      <div className="mt-4">
                         <Button
+                          className="w-full"
                           onClick={handleAddExistingItem}
                           disabled={isAddingExistingItem}
                         >
@@ -509,7 +510,7 @@ export default function CommunityPage() {
                 </TabsContent>
 
                 <TabsContent value="create" className="pt-4">
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 max-h-[60vh] overflow-y-auto pb-4 px-1">
                     <div className="grid gap-2">
                       <Label htmlFor="name">Item name*</Label>
                       <Input
@@ -599,8 +600,9 @@ export default function CommunityPage() {
                       </div>
                     )}
 
-                    <div className="flex justify-end mt-2">
+                    <div className="mt-4">
                       <Button
+                        className="w-full"
                         onClick={handleCreateItem}
                         disabled={isCreatingItem}
                       >
@@ -610,15 +612,6 @@ export default function CommunityPage() {
                   </div>
                 </TabsContent>
               </Tabs>
-
-              <DialogFooter className="mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddItemDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
