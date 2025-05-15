@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { Textarea } from "@/app/components/ui/textarea";
+import { CommunitiesGrid } from "@/app/components/CommunityCard";
 import Link from "next/link";
 
 export default function App(): React.ReactElement {
@@ -159,6 +160,67 @@ export default function App(): React.ReactElement {
     );
   }
 
+  // Create Community dialog contents
+  const createCommunityDialog = (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button>Create a community</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create a new community</DialogTitle>
+          <DialogDescription>
+            Create a community to organize and share items with others.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Community name</Label>
+            <Input
+              id="name"
+              value={newCommunityName}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setNewCommunityName(e.target.value)
+              }
+              placeholder="Enter community name"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description (optional)</Label>
+            <Textarea
+              id="description"
+              value={newCommunityDescription}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                setNewCommunityDescription(e.target.value)
+              }
+              placeholder="What is this community about?"
+            />
+          </div>
+
+          {createCommunityError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+              {createCommunityError}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateCommunity}
+            disabled={isCreatingCommunity}
+          >
+            {isCreatingCommunity ? "Creating..." : "Create community"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
@@ -179,83 +241,25 @@ export default function App(): React.ReactElement {
         </div>
 
         {communities.length === 0 ? (
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8 text-center">
-            <h2 className="text-xl font-semibold mb-4">
-              You're not part of any communities yet
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Communities let you organize and share items with others. Create
-              your own community or join an existing one to get started.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>Create a community</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create a new community</DialogTitle>
-                    <DialogDescription>
-                      Create a community to organize and share items with
-                      others.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name">Community name</Label>
-                      <Input
-                        id="name"
-                        value={newCommunityName}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setNewCommunityName(e.target.value)
-                        }
-                        placeholder="Enter community name"
-                      />
-                    </div>
-
-                    <div className="grid gap-2">
-                      <Label htmlFor="description">
-                        Description (optional)
-                      </Label>
-                      <Textarea
-                        id="description"
-                        value={newCommunityDescription}
-                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                          setNewCommunityDescription(e.target.value)
-                        }
-                        placeholder="What is this community about?"
-                      />
-                    </div>
-
-                    {createCommunityError && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
-                        {createCommunityError}
-                      </div>
-                    )}
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleCreateCommunity}
-                      disabled={isCreatingCommunity}
-                    >
-                      {isCreatingCommunity ? "Creating..." : "Create community"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <Button variant="outline">Join a community</Button>
-            </div>
-          </div>
+          <CommunitiesGrid
+            communities={[]}
+            emptyMessage={
+              <div>
+                <h2 className="text-xl font-semibold mb-4">
+                  You're not part of any communities yet
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Communities let you organize and share items with others.
+                  Create your own community or join an existing one to get
+                  started.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  {createCommunityDialog}
+                  <Button variant="outline">Join a community</Button>
+                </div>
+              </div>
+            }
+          />
         ) : (
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row gap-2 justify-between items-center mb-4">
@@ -325,23 +329,7 @@ export default function App(): React.ReactElement {
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {communities.map((community) => (
-                <Link href={`/app/community/${community.id}`}>
-                  <div
-                    key={community.id}
-                    className="border rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
-                  >
-                    <h3 className="font-semibold">{community.name}</h3>
-                    {community.description && (
-                      <p className="text-gray-600 text-sm mt-1">
-                        {community.description}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <CommunitiesGrid communities={communities} emptyMessage={null} />
           </div>
         )}
       </div>

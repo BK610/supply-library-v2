@@ -7,7 +7,6 @@ import { Settings } from "lucide-react";
 import { Community } from "@/lib/communities";
 import {
   Item,
-  Member,
   getCommunityItems,
   getCommunityMembers,
   createItem,
@@ -56,6 +55,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/ui/tabs";
+import { ItemsGrid } from "@/app/components/ItemCard";
 import Link from "next/link";
 
 export default function CommunityPage() {
@@ -634,57 +634,18 @@ export default function CommunityPage() {
           </Dialog>
         </div>
 
-        {items.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-100 rounded-lg p-6 text-center">
-            <p className="text-gray-600 mb-4">
-              This community doesn't have any items yet.
-            </p>
+        <ItemsGrid
+          items={items}
+          emptyMessage="This community doesn't have any items yet."
+          actionButton={
             <Button
               onClick={() => setIsAddItemDialogOpen(true)}
               variant="outline"
             >
               Add the first item
             </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-              >
-                <h3 className="font-semibold">{item.name}</h3>
-                {item.description && (
-                  <p className="text-gray-600 text-sm mt-1">
-                    {item.description}
-                  </p>
-                )}
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {item.category && (
-                    <span className="text-xs bg-blue-100 text-blue-800 rounded-full px-2 py-1">
-                      {item.category}
-                    </span>
-                  )}
-                  {item.condition && (
-                    <span className="text-xs bg-green-100 text-green-800 rounded-full px-2 py-1">
-                      {item.condition}
-                    </span>
-                  )}
-                  {item.quantity > 1 && (
-                    <span className="text-xs bg-purple-100 text-purple-800 rounded-full px-2 py-1">
-                      Qty: {item.quantity}
-                    </span>
-                  )}
-                  {item.consumable && (
-                    <span className="text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-1">
-                      Consumable
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+          }
+        />
       </div>
     </div>
   );
