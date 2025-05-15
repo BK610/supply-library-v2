@@ -11,7 +11,7 @@ export default function Home(): React.ReactElement {
               Share what you have, borrow what you need
             </h2>
             <p className="text-xl text-gray-600">
-              Your neighborhood's collaborative library of things.
+              Your neighborhood&apos;s collaborative library of things.
             </p>
           </div>
 
@@ -32,7 +32,7 @@ export default function Home(): React.ReactElement {
                 Need something short-term?
               </h3>
               <p className="text-gray-700 mb-4">
-                Why buy things you'll only use occasionally? Borrow tools,
+                Why buy things you&apos;ll only use occasionally? Borrow tools,
                 kitchen gadgets, outdoor gear, and more from your neighbors and
                 friends. Save money and storage space!
               </p>
@@ -62,11 +62,11 @@ export default function Home(): React.ReactElement {
                 </div>
                 <div>
                   <h4 className="font-medium text-lg">
-                    Add items you're willing to share
+                    Add items you&apos;re willing to share
                   </h4>
                   <p className="text-gray-600">
-                    List things you don't mind lending out to your community
-                    members.
+                    List things you don&apos;t mind lending out to your
+                    community members.
                   </p>
                 </div>
               </li>
