@@ -15,7 +15,7 @@ export default function Header(): React.ReactElement {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const { user, error } = await getCurrentSession();
+        const { user } = await getCurrentSession();
         setIsLoggedIn(!!user);
       } catch (err) {
         console.error("Auth check error:", err);
