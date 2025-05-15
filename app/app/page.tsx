@@ -1,5 +1,5 @@
 "use client";
-import { getCurrentSession, signOut } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 import { Button } from "@/app/components/ui/button";
