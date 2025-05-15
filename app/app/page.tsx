@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { Textarea } from "@/app/components/ui/textarea";
+import Link from "next/link";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
@@ -326,18 +327,19 @@ export default function App(): React.ReactElement {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {communities.map((community) => (
-                <div
-                  key={community.id}
-                  onClick={() => router.push(`/app/community/${community.id}`)}
-                  className="border rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
-                >
-                  <h3 className="font-semibold">{community.name}</h3>
-                  {community.description && (
-                    <p className="text-gray-600 text-sm mt-1">
-                      {community.description}
-                    </p>
-                  )}
-                </div>
+                <Link href={`/app/community/${community.id}`}>
+                  <div
+                    key={community.id}
+                    className="border rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow"
+                  >
+                    <h3 className="font-semibold">{community.name}</h3>
+                    {community.description && (
+                      <p className="text-gray-600 text-sm mt-1">
+                        {community.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
