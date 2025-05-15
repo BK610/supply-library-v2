@@ -3,6 +3,7 @@
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 import { getCurrentSession } from "@/lib/auth";
+import { Settings } from "lucide-react";
 import { Community } from "@/lib/communities";
 import {
   Item,
@@ -349,7 +350,10 @@ export default function CommunityPage() {
 
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline">Community Settings</Button>
+            <Button variant="outline">
+              <Settings />
+              <span className="hidden sm:block">Community Settings</span>
+            </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
