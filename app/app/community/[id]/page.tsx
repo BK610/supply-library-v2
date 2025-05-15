@@ -333,14 +333,14 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
+      <Link href={"/app"}>
+        <Button variant="outline" size="sm" className="mb-4 sm:mb-10">
+          ← Back to Dashboard
+        </Button>
+      </Link>
+      <div className="flex justify-between mb-8">
         <div>
-          <Link href={"/app"}>
-            <Button variant="outline" size="sm" className="mb-2">
-              ← Back to Dashboard
-            </Button>
-          </Link>
           <h1 className="text-3xl font-bold">{community.name}</h1>
           {community.description && (
             <p className="text-gray-600 mt-2">{community.description}</p>
