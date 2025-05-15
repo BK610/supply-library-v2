@@ -128,7 +128,14 @@ export async function searchUserItems(
       return { error: error.message };
     }
 
-    return { items: data as Item[] };
+    // Transform the result to match our Item interface
+    const transformedItems = data.map((item: any) => ({
+      ...item,
+      owner_profile: item.profiles,
+      profiles: undefined, // Remove the profiles property
+    }));
+
+    return { items: transformedItems as Item[] };
   } catch (error) {
     console.error("Unexpected error searching user items:", error);
     return { error: "Failed to search user items" };
