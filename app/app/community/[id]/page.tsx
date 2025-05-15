@@ -4,7 +4,12 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
 import { getCurrentSession } from "@/lib/auth";
 import { Settings } from "lucide-react";
-import { Community } from "@/lib/communities";
+import {
+  Community,
+  inviteUserToCommunity,
+  getCommunityInvitations,
+  Invitation,
+} from "@/lib/communities";
 import {
   Item,
   getCommunityItems,
@@ -58,6 +63,7 @@ import {
 import { ItemsGrid } from "@/app/components/ItemCard";
 import Link from "next/link";
 import { ItemCard } from "@/app/components/ItemCard";
+import { Mail } from "lucide-react";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -70,6 +76,7 @@ export default function CommunityPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUserAdmin, setIsUserAdmin] = useState(false);
 
   // Add item dialog state
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
@@ -93,7 +100,17 @@ export default function CommunityPage() {
   const [newItemConsumable, setNewItemConsumable] = useState(false);
   const [addItemError, setAddItemError] = useState("");
 
-  // Fetch the community data, items, and members
+  // Invitation states
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [pendingInvitations, setPendingInvitations] = useState<Invitation[]>(
+    []
+  );
+  const [showInvitations, setShowInvitations] = useState(false);
+
+  // Fetch the community data, items, members, and invitations
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -124,6 +141,30 @@ export default function CommunityPage() {
         }
 
         setCommunity(communityData);
+
+        // Check if user is admin
+        const { data: memberRole, error: memberRoleError } = await supabase
+          .from("community_members")
+          .select("role")
+          .eq("community_id", communityId)
+          .eq("member_id", currentUser.id)
+          .single();
+
+        if (!memberRoleError && memberRole && memberRole.role === "admin") {
+          setIsUserAdmin(true);
+
+          // If admin, fetch pending invitations
+          const { invitations, error: invitationsError } =
+            await getCommunityInvitations(communityId, currentUser.id);
+
+          if (invitationsError) {
+            console.error("Error fetching invitations:", invitationsError);
+          } else if (invitations) {
+            setPendingInvitations(
+              invitations.filter((inv) => inv.status === "pending")
+            );
+          }
+        }
 
         // Fetch community items
         const { items: communityItems, error: itemsError } =
@@ -302,6 +343,45 @@ export default function CommunityPage() {
     }
   };
 
+  // Handle inviting a user
+  const handleInviteUser = async () => {
+    if (!user || !community) return;
+
+    setIsInviting(true);
+    setInviteError("");
+    setInviteSuccess(false);
+
+    if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
+      setInviteError("Please enter a valid email address");
+      setIsInviting(false);
+      return;
+    }
+
+    try {
+      const { success, error, invitation } = await inviteUserToCommunity(
+        communityId,
+        user.id,
+        inviteEmail.trim()
+      );
+
+      if (error) {
+        setInviteError(error);
+        return;
+      }
+
+      if (success && invitation) {
+        setInviteSuccess(true);
+        setInviteEmail("");
+        setPendingInvitations([...pendingInvitations, invitation]);
+      }
+    } catch (err: any) {
+      console.error("Error inviting user:", err);
+      setInviteError(err?.message || "Failed to send invitation");
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -364,35 +444,111 @@ export default function CommunityPage() {
               </SheetDescription>
             </SheetHeader>
 
-            <div className="py-6">
-              <h3 className="text-lg font-medium mb-4">Members</h3>
-              <div className="space-y-4">
-                {members.map((member) => (
-                  <div
-                    key={member.member_id}
-                    className="flex items-center justify-between border-b pb-2"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage
-                          src={member.profiles?.avatar_url || undefined}
-                          alt={member.profiles?.username}
+            <div className="py-6 px-4 space-y-8">
+              {isUserAdmin && (
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Invite Members</h3>
+
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="invite-email">Email address</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="invite-email"
+                          type="email"
+                          placeholder="user@example.com"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleInviteUser()
+                          }
                         />
-                        <AvatarFallback>
-                          {member.profiles?.username
-                            ?.charAt(0)
-                            ?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">
-                          {member.profiles?.username}
-                        </p>
-                        <p className="text-sm text-gray-500">{member.role}</p>
+                        <Button
+                          onClick={handleInviteUser}
+                          disabled={isInviting || !inviteEmail.trim()}
+                          size="sm"
+                        >
+                          {isInviting ? "Sending..." : "Invite"}
+                        </Button>
                       </div>
                     </div>
+
+                    {inviteError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+                        {inviteError}
+                      </div>
+                    )}
+
+                    {inviteSuccess && (
+                      <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-md text-sm">
+                        Invitation sent successfully!
+                      </div>
+                    )}
+
+                    {pendingInvitations.length > 0 && (
+                      <div>
+                        <button
+                          onClick={() => setShowInvitations(!showInvitations)}
+                          className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          {showInvitations ? "Hide" : "Show"} pending
+                          invitations ({pendingInvitations.length})
+                        </button>
+
+                        {showInvitations && (
+                          <div className="mt-2 space-y-2">
+                            {pendingInvitations.map((invitation) => (
+                              <div
+                                key={invitation.id}
+                                className="flex items-center gap-2 text-sm border-b pb-2"
+                              >
+                                <Mail className="h-4 w-4 text-gray-400" />
+                                <span>{invitation.email}</span>
+                                <span className="text-xs text-gray-400 ml-auto">
+                                  {new Date(
+                                    invitation.created_at
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-lg font-medium mb-4">Members</h3>
+                <div className="space-y-4">
+                  {members.map((member) => (
+                    <div
+                      key={member.member_id}
+                      className="flex items-center justify-between border-b pb-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage
+                            src={member.profiles?.avatar_url || undefined}
+                            alt={member.profiles?.username}
+                          />
+                          <AvatarFallback>
+                            {member.profiles?.username
+                              ?.charAt(0)
+                              ?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">
+                            {member.profiles?.username}
+                          </p>
+                          <p className="text-sm text-gray-500">{member.role}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </SheetContent>

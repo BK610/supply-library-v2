@@ -8,6 +8,8 @@ import {
   getUserCommunities,
   createCommunity,
   Community,
+  getUserInvitations,
+  Invitation,
 } from "@/lib/communities";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -22,7 +24,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { Textarea } from "@/app/components/ui/textarea";
 import { CommunitiesGrid } from "@/app/components/CommunityCard";
-import Link from "next/link";
+import { InvitationsList } from "@/app/components/InvitationsList";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
@@ -35,6 +37,10 @@ export default function App(): React.ReactElement {
   const [newCommunityDescription, setNewCommunityDescription] = useState("");
   const [createCommunityError, setCreateCommunityError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Invitations state
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -53,6 +59,21 @@ export default function App(): React.ReactElement {
             await getUserCommunities(user.id);
           if (!communitiesError && communities) {
             setCommunities(communities);
+          }
+
+          // Fetch user invitations
+          setLoadingInvitations(true);
+          try {
+            const { invitations: userInvitations, error: invitationsError } =
+              await getUserInvitations(user.email || "");
+
+            if (!invitationsError && userInvitations) {
+              setInvitations(userInvitations);
+            }
+          } catch (invErr) {
+            console.error("Error fetching invitations:", invErr);
+          } finally {
+            setLoadingInvitations(false);
           }
 
           setIsLoading(false);
@@ -84,6 +105,19 @@ export default function App(): React.ReactElement {
     } catch (err) {
       console.error("Unexpected error during logout:", err);
       setIsLoggingOut(false);
+    }
+  };
+
+  const handleInvitationResponded = (
+    invitationId: string,
+    accepted: boolean
+  ) => {
+    // Remove the invitation from the list
+    setInvitations(invitations.filter((inv) => inv.id !== invitationId));
+
+    // If accepted, refresh the communities list
+    if (accepted) {
+      refreshCommunities();
     }
   };
 
@@ -240,6 +274,14 @@ export default function App(): React.ReactElement {
           <p className="text-gray-600">Welcome, {user?.email}</p>
         </div>
 
+        {!loadingInvitations && invitations.length > 0 && (
+          <InvitationsList
+            invitations={invitations}
+            user={user!}
+            onInvitationResponded={handleInvitationResponded}
+          />
+        )}
+
         {communities.length === 0 ? (
           <CommunitiesGrid
             communities={[]}
@@ -255,7 +297,9 @@ export default function App(): React.ReactElement {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   {createCommunityDialog}
-                  <Button variant="outline">Join a community</Button>
+                  <Button variant="outline" disabled>
+                    Join a community
+                  </Button>
                 </div>
               </div>
             }
