@@ -426,69 +426,38 @@ export async function respondToInvitation(
   accept: boolean
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get the invitation
-    const { data: invitation, error: inviteError } = await supabase
-      .from("community_invitations")
-      .select("community_id, email")
-      .eq("id", invitationId)
-      .eq("status", "pending")
-      .single();
-
-    if (inviteError) {
-      console.error("Error fetching invitation:", inviteError);
-      return { success: false, error: inviteError.message };
-    }
-
-    // Get the user's email using our secure function
-    const { data: authData, error: authError } = await supabase.rpc(
-      "get_auth_email"
-    );
-
-    if (authError) {
-      console.error("Error fetching user email:", authError);
-      return { success: false, error: authError.message };
-    }
-
-    const userEmail = authData;
-
-    // Verify that the invitation was sent to this user's email
-    if (userEmail !== invitation.email) {
-      return {
-        success: false,
-        error: "This invitation was not sent to your email address",
-      };
-    }
-
-    // Update the invitation status
-    const { error: updateError } = await supabase
-      .from("community_invitations")
-      .update({
-        status: accept ? "accepted" : "declined",
-      })
-      .eq("id", invitationId);
-
-    if (updateError) {
-      console.error("Error updating invitation:", updateError);
-      return { success: false, error: updateError.message };
-    }
-
-    // If accepting, add the user to the community
     if (accept) {
-      const { error: memberError } = await supabase
-        .from("community_members")
-        .insert({
-          community_id: invitation.community_id,
-          member_id: userId,
-          role: "member",
-        });
+      // Use our secure server-side function to accept the invitation
+      const { data: success, error: acceptError } = await supabase.rpc(
+        "accept_invitation",
+        {
+          invitation_id: invitationId,
+          user_id: userId,
+        }
+      );
 
-      if (memberError) {
-        console.error("Error adding user to community:", memberError);
-        return { success: false, error: memberError.message };
+      if (acceptError) {
+        console.error("Error accepting invitation:", acceptError);
+        return { success: false, error: acceptError.message };
       }
-    }
 
-    return { success: true };
+      return { success: !!success };
+    } else {
+      // Just declining - only need to update status
+      const { error: updateError } = await supabase
+        .from("community_invitations")
+        .update({
+          status: "declined",
+        })
+        .eq("id", invitationId);
+
+      if (updateError) {
+        console.error("Error declining invitation:", updateError);
+        return { success: false, error: updateError.message };
+      }
+
+      return { success: true };
+    }
   } catch (error) {
     console.error("Unexpected error responding to invitation:", error);
     return { success: false, error: "Failed to respond to invitation" };
