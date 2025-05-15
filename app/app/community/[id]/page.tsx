@@ -57,6 +57,7 @@ import {
 } from "@/app/components/ui/tabs";
 import { ItemsGrid } from "@/app/components/ItemCard";
 import Link from "next/link";
+import { ItemCard } from "@/app/components/ItemCard";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -457,29 +458,17 @@ export default function CommunityPage() {
                         {searchResults.map((item) => (
                           <div
                             key={item.id}
-                            className={`p-3 cursor-pointer hover:bg-gray-50 ${
+                            className={`${
                               selectedItem?.id === item.id ? "bg-blue-50" : ""
                             }`}
-                            onClick={() => setSelectedItem(item)}
                           >
-                            <h4 className="font-medium">{item.name}</h4>
-                            {item.description && (
-                              <p className="text-sm text-gray-600">
-                                {item.description}
-                              </p>
-                            )}
-                            <div className="mt-1 flex gap-2 flex-wrap">
-                              {item.category && (
-                                <span className="text-xs bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-                                  {item.category}
-                                </span>
-                              )}
-                              {item.condition && (
-                                <span className="text-xs bg-green-100 text-green-800 rounded-full px-2 py-0.5">
-                                  {item.condition}
-                                </span>
-                              )}
-                            </div>
+                            <ItemCard
+                              item={item}
+                              onClick={() => setSelectedItem(item)}
+                              className={`rounded-none border-0 ${
+                                selectedItem?.id === item.id ? "bg-blue-50" : ""
+                              }`}
+                            />
                           </div>
                         ))}
                       </div>
