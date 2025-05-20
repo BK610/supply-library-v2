@@ -2,7 +2,7 @@
 
 import { Button } from "@/app/components/ui/button";
 import { Community } from "@/lib/communities";
-import { Sidebar, SidebarProvider } from "@/app/components/ui/sidebar";
+import { Sidebar } from "@/app/components/ui/sidebar";
 import {
   Dialog,
   DialogContent,
@@ -77,82 +77,73 @@ export function CommunitiesSidebar({
   };
 
   return (
-    <SidebarProvider>
-      <Sidebar className="w-64 border-r">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Communities</h2>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full mb-4">Create a community</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create a new community</DialogTitle>
-                <DialogDescription>
-                  Create a community to organize and share items with others.
-                </DialogDescription>
-              </DialogHeader>
+    <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
+      <div className="p-4">
+        <h2 className="text-lg font-semibold mb-4">Communities</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full mb-4">Create a community</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a new community</DialogTitle>
+              <DialogDescription>
+                Create a community to organize and share items with others.
+              </DialogDescription>
+            </DialogHeader>
 
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Community name</Label>
-                  <Input
-                    id="name"
-                    value={newCommunityName}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      setNewCommunityName(e.target.value)
-                    }
-                    placeholder="Enter community name"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="description">Description (optional)</Label>
-                  <Textarea
-                    id="description"
-                    value={newCommunityDescription}
-                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                      setNewCommunityDescription(e.target.value)
-                    }
-                    placeholder="What is this community about?"
-                  />
-                </div>
-
-                {createCommunityError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
-                    {createCommunityError}
-                  </div>
-                )}
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Community name</Label>
+                <Input
+                  id="name"
+                  value={newCommunityName}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNewCommunityName(e.target.value)
+                  }
+                  placeholder="Enter community name"
+                />
               </div>
 
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateCommunity}
-                  disabled={isCreatingCommunity}
-                >
-                  {isCreatingCommunity ? "Creating..." : "Create community"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description (optional)</Label>
+                <Textarea
+                  id="description"
+                  value={newCommunityDescription}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    setNewCommunityDescription(e.target.value)
+                  }
+                  placeholder="What is this community about?"
+                />
+              </div>
 
-          <div className="space-y-2">
-            {communities.map((community) => (
-              <CommunityCard
-                key={community.id}
-                community={community}
-                className="hover:bg-gray-50"
-              />
-            ))}
-          </div>
+              {createCommunityError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+                  {createCommunityError}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateCommunity}
+                disabled={isCreatingCommunity}
+              >
+                {isCreatingCommunity ? "Creating..." : "Create community"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <div className="space-y-2">
+          {communities.map((community) => (
+            <CommunityCard key={community.id} community={community} />
+          ))}
         </div>
-      </Sidebar>
-    </SidebarProvider>
+      </div>
+    </Sidebar>
   );
 }
