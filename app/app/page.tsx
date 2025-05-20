@@ -12,8 +12,9 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { CommunitiesSidebar } from "@/app/components/CommunitiesSidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { InvitationsList } from "@/app/components/InvitationsList";
+// import { InvitationsList } from "@/app/components/InvitationsList";
 import { ItemsGrid } from "@/app/components/ItemCard";
+import { searchUserItems, Item } from "@/lib/items";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
@@ -21,6 +22,9 @@ export default function App(): React.ReactElement {
   const [user, setUser] = useState<User | null>(null);
   const [communities, setCommunities] = useState<Community[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Item[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   // Invitations state
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -71,18 +75,18 @@ export default function App(): React.ReactElement {
     checkAuth();
   }, [router]);
 
-  const handleInvitationResponded = (
-    invitationId: string,
-    accepted: boolean
-  ) => {
-    // Remove the invitation from the list
-    setInvitations(invitations.filter((inv) => inv.id !== invitationId));
+  // const handleInvitationResponded = (
+  //   invitationId: string,
+  //   accepted: boolean
+  // ) => {
+  //   // Remove the invitation from the list
+  //   setInvitations(invitations.filter((inv) => inv.id !== invitationId));
 
-    // If accepted, refresh the communities list
-    if (accepted) {
-      refreshCommunities();
-    }
-  };
+  //   // If accepted, refresh the communities list
+  //   if (accepted) {
+  //     refreshCommunities();
+  //   }
+  // };
 
   // Function to refresh the list of communities
   const refreshCommunities = async () => {
@@ -103,6 +107,48 @@ export default function App(): React.ReactElement {
       console.error("Unexpected error refreshing communities:", error);
     }
   };
+
+  // Add search handler
+  const handleSearch = async () => {
+    if (!user || !searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const { items: foundItems, error } = await searchUserItems(
+        user.id,
+        searchQuery
+      );
+
+      if (error) {
+        console.error("Error searching items:", error);
+        setSearchError(error);
+        return;
+      }
+
+      setSearchResults(foundItems || []);
+    } catch (err) {
+      console.error("Unexpected error searching items:", err);
+      setSearchError(
+        err instanceof Error ? err.message : "Failed to search items"
+      );
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Add debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, user]);
 
   if (isLoading) {
     return (
@@ -150,12 +196,20 @@ export default function App(): React.ReactElement {
 
           <div className="w-full max-w-2xl">
             <h2 className="text-lg font-medium mb-4">Items</h2>
-            <div className="space-y-4">
-              {/* TODO: Implement actual search results */}
-              <div className="text-gray-500 text-center py-4">
-                Search functionality coming soon...
-              </div>
-            </div>
+            {isSearching ? (
+              <div className="text-gray-500 text-center py-4">Searching...</div>
+            ) : searchError ? (
+              <div className="text-red-500 text-center py-4">{searchError}</div>
+            ) : (
+              <ItemsGrid
+                items={searchResults}
+                emptyMessage={
+                  searchQuery
+                    ? "No items found matching your search."
+                    : "Start typing to search for items across your communities."
+                }
+              />
+            )}
           </div>
         </div>
       </SidebarInset>
