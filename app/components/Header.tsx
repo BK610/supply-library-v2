@@ -31,7 +31,7 @@ export default function Header(): React.ReactElement {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async () => {
       // Use our auth wrapper to maintain consistency
       const { user } = await getCurrentSession();
       setIsLoggedIn(!!user);
