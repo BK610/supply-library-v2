@@ -121,13 +121,13 @@ export default function App(): React.ReactElement {
       />
 
       <SidebarInset>
-        {!loadingInvitations && invitations.length > 0 && (
+        {/* {!loadingInvitations && invitations.length > 0 && (
           <InvitationsList
             invitations={invitations}
             user={user!}
             onInvitationResponded={handleInvitationResponded}
           />
-        )}
+        )} */}
         <SidebarTrigger className="md:hidden" />
 
         <div className="flex flex-col items-center px-4 py-8">
