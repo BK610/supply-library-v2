@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(user);
         }
       } catch (err) {
+        console.error("Error initializing authentication:", err);
         setError("Failed to initialize authentication");
       } finally {
         setIsLoading(false);
