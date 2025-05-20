@@ -6,8 +6,8 @@ import { User } from "@supabase/supabase-js";
 import {
   getUserCommunities,
   Community,
-  getUserInvitations,
-  Invitation,
+  // getUserInvitations,
+  // Invitation,
 } from "@/lib/communities";
 import { Input } from "@/app/components/ui/input";
 import { CommunitiesSidebar } from "@/app/components/CommunitiesSidebar";
@@ -42,8 +42,8 @@ export default function App(): React.ReactElement {
   const [searchError, setSearchError] = useState<string | null>(null);
 
   // Invitations state
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  // const [invitations, setInvitations] = useState<Invitation[]>([]);
+  // const [loadingInvitations, setLoadingInvitations] = useState(false);
 
   const [isCreateItemDialogOpen, setIsCreateItemDialogOpen] = useState(false);
   const [isCreatingItem, setIsCreatingItem] = useState(false);
@@ -69,19 +69,19 @@ export default function App(): React.ReactElement {
           }
 
           // Fetch user invitations
-          setLoadingInvitations(true);
-          try {
-            const { invitations: userInvitations, error: invitationsError } =
-              await getUserInvitations(user.email || "");
+          // setLoadingInvitations(true);
+          // try {
+          //   const { invitations: userInvitations, error: invitationsError } =
+          //     await getUserInvitations(user.email || "");
 
-            if (!invitationsError && userInvitations) {
-              setInvitations(userInvitations);
-            }
-          } catch (invErr) {
-            console.error("Error fetching invitations:", invErr);
-          } finally {
-            setLoadingInvitations(false);
-          }
+          //   if (!invitationsError && userInvitations) {
+          //     setInvitations(userInvitations);
+          //   }
+          // } catch (invErr) {
+          //   console.error("Error fetching invitations:", invErr);
+          // } finally {
+          //   setLoadingInvitations(false);
+          // }
 
           setIsLoading(false);
         }
@@ -108,24 +108,24 @@ export default function App(): React.ReactElement {
   // };
 
   // Function to refresh the list of communities
-  const refreshCommunities = async () => {
-    if (!user) return;
+  // const refreshCommunities = async () => {
+  //   if (!user) return;
 
-    try {
-      const { communities: updatedCommunities, error } =
-        await getUserCommunities(user.id);
-      if (error) {
-        console.error("Error refreshing communities:", error);
-        return;
-      }
+  //   try {
+  //     const { communities: updatedCommunities, error } =
+  //       await getUserCommunities(user.id);
+  //     if (error) {
+  //       console.error("Error refreshing communities:", error);
+  //       return;
+  //     }
 
-      if (updatedCommunities) {
-        setCommunities(updatedCommunities);
-      }
-    } catch (error) {
-      console.error("Unexpected error refreshing communities:", error);
-    }
-  };
+  //     if (updatedCommunities) {
+  //       setCommunities(updatedCommunities);
+  //     }
+  //   } catch (error) {
+  //     console.error("Unexpected error refreshing communities:", error);
+  //   }
+  // };
 
   // Add search handler
   const handleSearch = async () => {

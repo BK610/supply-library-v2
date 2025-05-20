@@ -24,7 +24,6 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { Textarea } from "@/app/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -41,14 +40,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/app/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   Avatar,
   AvatarFallback,
@@ -259,24 +250,13 @@ export default function CommunityPage() {
 
   // Add item dialog state
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("search");
 
   // Search functionality
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Item[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [addExistingItemError, setAddExistingItemError] = useState("");
   const [isAddingExistingItem, setIsAddingExistingItem] = useState(false);
 
   // New item form state
   const [isCreatingItem, setIsCreatingItem] = useState(false);
-  const [newItemName, setNewItemName] = useState("");
-  const [newItemDescription, setNewItemDescription] = useState("");
-  const [newItemCategory, setNewItemCategory] = useState("");
-  const [newItemCondition, setNewItemCondition] = useState("");
-  const [newItemQuantity, setNewItemQuantity] = useState(1);
-  const [newItemConsumable, setNewItemConsumable] = useState(false);
   const [addItemError, setAddItemError] = useState("");
 
   // Invitation states
@@ -376,157 +356,6 @@ export default function CommunityPage() {
       fetchData();
     }
   }, [communityId, router]);
-
-  // Handle item search
-  const handleSearch = async () => {
-    if (!user || !searchQuery.trim()) return;
-
-    setIsSearching(true);
-    setAddExistingItemError("");
-
-    try {
-      const { items: foundItems, error } = await searchUserItems(
-        user.id,
-        searchQuery,
-        communityId
-      );
-
-      if (error) {
-        console.error("Error searching items:", error);
-        setAddExistingItemError(error);
-        return;
-      }
-
-      setSearchResults(foundItems || []);
-    } catch (err: unknown) {
-      console.error("Unexpected error searching items:", err);
-      setAddExistingItemError(
-        err instanceof Error ? err.message : "Failed to search items"
-      );
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Handle adding an existing item to the community
-  const handleAddExistingItem = async () => {
-    if (!selectedItem) {
-      setAddExistingItemError("Please select an item first");
-      return;
-    }
-
-    setIsAddingExistingItem(true);
-    setAddExistingItemError("");
-
-    try {
-      const { success, error } = await addItemToCommunity(
-        selectedItem.id,
-        communityId
-      );
-
-      if (error) {
-        console.error("Error adding item:", error);
-        setAddExistingItemError(error);
-        return;
-      }
-
-      if (success) {
-        // Add the selected item to the items list
-        setItems((prevItems) => [...prevItems, selectedItem]);
-
-        // Reset state
-        setSearchQuery("");
-        setSearchResults([]);
-        setSelectedItem(null);
-        setIsAddItemDialogOpen(false);
-      }
-    } catch (err: unknown) {
-      console.error("Unexpected error adding item:", err);
-      setAddExistingItemError(
-        err instanceof Error ? err.message : "Failed to add item"
-      );
-    } finally {
-      setIsAddingExistingItem(false);
-    }
-  };
-
-  // Handle creating a new item
-  const handleCreateItem = async () => {
-    if (!user) {
-      setAddItemError("You must be logged in to add an item");
-      return;
-    }
-
-    if (!newItemName.trim()) {
-      setAddItemError("Item name is required");
-      return;
-    }
-
-    setIsCreatingItem(true);
-    setAddItemError("");
-
-    try {
-      const { item, error } = await createItem(
-        {
-          name: newItemName,
-          description: newItemDescription || undefined,
-          category: newItemCategory || undefined,
-          condition: newItemCondition || undefined,
-          quantity: newItemQuantity,
-          consumable: newItemConsumable,
-        },
-        communityId,
-        user
-      );
-
-      if (error) {
-        console.error("Error creating item:", error);
-        setAddItemError(error);
-        return;
-      }
-
-      if (item) {
-        // Add the new item to state
-        setItems((prevItems) => [...prevItems, item]);
-
-        // Reset form
-        setNewItemName("");
-        setNewItemDescription("");
-        setNewItemCategory("");
-        setNewItemCondition("");
-        setNewItemQuantity(1);
-        setNewItemConsumable(false);
-        setIsAddItemDialogOpen(false);
-      }
-    } catch (err: unknown) {
-      console.error("Unexpected error creating item:", err);
-      setAddItemError(
-        err instanceof Error ? err.message : "Failed to create item"
-      );
-    } finally {
-      setIsCreatingItem(false);
-    }
-  };
-
-  // Reset the dialog state when it's closed
-  const handleDialogOpenChange = (open: boolean) => {
-    setIsAddItemDialogOpen(open);
-    if (!open) {
-      // Reset all the state when dialog closes
-      setSearchQuery("");
-      setSearchResults([]);
-      setSelectedItem(null);
-      setNewItemName("");
-      setNewItemDescription("");
-      setNewItemCategory("");
-      setNewItemCondition("");
-      setNewItemQuantity(1);
-      setNewItemConsumable(false);
-      setAddItemError("");
-      setAddExistingItemError("");
-      setActiveTab("search");
-    }
-  };
 
   // Handle inviting a user
   const handleInviteUser = async () => {
