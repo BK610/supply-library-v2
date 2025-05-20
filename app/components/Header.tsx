@@ -5,23 +5,30 @@ import { Button } from "@/app/components/ui/button";
 import { signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Header(): React.ReactElement {
   const { user, isLoading, error } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
+  // Handle navigation after logout
+  useEffect(() => {
+    if (!isLoading && !user && !isLoggingOut) {
+      router.push("/login");
+    }
+  }, [isLoading, user, isLoggingOut, router]);
+
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
       const { error, success } = await signOut();
 
-      if (success) {
-        router.push("/");
-      } else if (error) {
+      if (error) {
         console.error("Logout error:", error);
       }
+      // Note: We don't need to manually navigate here
+      // The useEffect will handle navigation when auth state changes
     } catch (err) {
       console.error("Unexpected logout error:", err);
     } finally {
