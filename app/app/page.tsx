@@ -1,14 +1,7 @@
 "use client";
-import { getCurrentSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import {
-  getUserCommunities,
-  Community,
-  // getUserInvitations,
-  // Invitation,
-} from "@/lib/communities";
+import { Community, getUserCommunities } from "@/lib/communities";
 import { Input } from "@/app/components/ui/input";
 import { CommunitiesSidebar } from "@/app/components/CommunitiesSidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -30,12 +23,14 @@ import {
   DialogTrigger,
 } from "@/app/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const { user, isLoading: isAuthLoading, error: authError } = useAuth();
   const [communities, setCommunities] = useState<Community[]>([]);
+  const [isLoadingCommunities, setIsLoadingCommunities] = useState(false);
+  const [communitiesError, setCommunitiesError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Item[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -49,50 +44,41 @@ export default function App(): React.ReactElement {
   const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [createItemError, setCreateItemError] = useState<string | null>(null);
 
+  // Handle authentication redirect
   useEffect(() => {
-    async function checkAuth() {
+    if (!isAuthLoading && !user) {
+      router.push("/login");
+    }
+  }, [isAuthLoading, user, router]);
+
+  // Fetch communities when user is authenticated
+  useEffect(() => {
+    async function fetchCommunities() {
+      if (!user) return;
+
+      setIsLoadingCommunities(true);
+      setCommunitiesError(null);
+
       try {
-        const { session, user, error } = await getCurrentSession();
+        const { communities: userCommunities, error } =
+          await getUserCommunities(user.id);
 
-        if (error || !session || !user) {
-          // User is not authenticated, redirect to login
-          router.push("/login");
-        } else {
-          // User is authenticated
-          setUser(user);
-
-          // Fetch user communities
-          const { communities: userCommunities, error: communitiesError } =
-            await getUserCommunities(user.id);
-          if (!communitiesError && userCommunities) {
-            setCommunities(userCommunities);
-          }
-
-          // Fetch user invitations
-          // setLoadingInvitations(true);
-          // try {
-          //   const { invitations: userInvitations, error: invitationsError } =
-          //     await getUserInvitations(user.email || "");
-
-          //   if (!invitationsError && userInvitations) {
-          //     setInvitations(userInvitations);
-          //   }
-          // } catch (invErr) {
-          //   console.error("Error fetching invitations:", invErr);
-          // } finally {
-          //   setLoadingInvitations(false);
-          // }
-
-          setIsLoading(false);
+        if (error) {
+          console.error("Error fetching communities:", error);
+          setCommunitiesError(error);
+        } else if (userCommunities) {
+          setCommunities(userCommunities);
         }
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-        router.push("/login");
+      } catch (err) {
+        console.error("Unexpected error fetching communities:", err);
+        setCommunitiesError("Failed to fetch communities");
+      } finally {
+        setIsLoadingCommunities(false);
       }
     }
 
-    checkAuth();
-  }, [router]);
+    fetchCommunities();
+  }, [user]);
 
   // const handleInvitationResponded = (
   //   invitationId: string,
@@ -183,9 +169,27 @@ export default function App(): React.ReactElement {
     return () => clearTimeout(timer);
   }, [searchQuery, user]);
 
-  if (isLoading) {
+  if (isAuthLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">Loading...</div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{authError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-500">Redirecting to login...</div>
+      </div>
     );
   }
 
@@ -193,10 +197,12 @@ export default function App(): React.ReactElement {
     <>
       <CommunitiesSidebar
         communities={communities}
-        user={user!}
+        user={user}
         onCommunityCreated={(community) =>
           setCommunities([...communities, community])
         }
+        isLoading={isLoadingCommunities}
+        error={communitiesError}
       />
 
       <SidebarInset>
@@ -246,13 +252,6 @@ export default function App(): React.ReactElement {
                   </DialogHeader>
                   <CreateNewItemForm
                     onSubmit={async (itemData) => {
-                      if (!user) {
-                        setCreateItemError(
-                          "You must be logged in to create an item"
-                        );
-                        return;
-                      }
-
                       setIsCreatingItem(true);
                       setCreateItemError(null);
 
