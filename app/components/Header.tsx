@@ -22,7 +22,7 @@ export default function Header(): React.ReactElement {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const { error, success } = await signOut();
+      const { error } = await signOut();
 
       if (error) {
         console.error("Logout error:", error);
