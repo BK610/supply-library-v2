@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
+import { AuthProvider } from "@/lib/auth-context";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -27,9 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased min-h-svh flex flex-col`}>
-        <Header />
-        <main className="flex-1 flex flex-col">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main className="flex-1 flex flex-col">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
