@@ -97,16 +97,18 @@ export function ItemsGrid({
   }
 
   return (
-    <div
-      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${className}`}
-    >
-      {items.map((item) => (
-        <ItemCard
-          key={item.id}
-          item={item}
-          onClick={onItemClick ? () => onItemClick(item) : undefined}
-        />
-      ))}
+    <div className="@container w-full">
+      <div
+        className={`grid grid-cols-1 @3xl:grid-cols-2 @5xl:grid-cols-3 gap-4 ${className}`}
+      >
+        {items.map((item) => (
+          <ItemCard
+            key={item.id}
+            item={item}
+            onClick={onItemClick ? () => onItemClick(item) : undefined}
+          />
+        ))}
+      </div>
     </div>
   );
 }
