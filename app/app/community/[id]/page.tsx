@@ -425,7 +425,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-8">
+    <div className="@container max-w-7xl w-full mx-auto px-4 py-4 sm:py-8">
       <Link href={"/app"}>
         <Button variant="outline" size="sm" className="mb-4 sm:mb-10">
           ← Back to Dashboard
