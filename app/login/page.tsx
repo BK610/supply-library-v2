@@ -1,32 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LoginForm } from "@/app/components/login-form";
-import { getCurrentSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Page() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    async function checkAuth() {
-      try {
-        const { user } = await getCurrentSession();
-
-        if (user) {
-          // User is already logged in, redirect to dashboard
-          router.push("/app");
-        }
-      } catch (err) {
-        console.error("Auth check error:", err);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!isLoading && user) {
+      // User is already logged in, redirect to dashboard
+      router.push("/app");
     }
-
-    checkAuth();
-  }, [router]);
+  }, [isLoading, user, router]);
 
   if (isLoading) {
     return (
@@ -35,6 +23,14 @@ export default function Page() {
           <div className="h-8 w-full bg-gray-100 animate-pulse rounded-md mb-4"></div>
           <div className="h-8 w-3/4 mx-auto bg-gray-100 animate-pulse rounded-md"></div>
         </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="flex-1 flex w-full items-center justify-center p-6 md:p-10">
+        <div className="text-gray-500">Redirecting to dashboard...</div>
       </div>
     );
   }

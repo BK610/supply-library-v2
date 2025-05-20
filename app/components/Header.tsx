@@ -1,45 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/button";
-import { getCurrentSession, signOut } from "@/lib/auth";
+import { signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
+import { useState } from "react";
 
 export default function Header(): React.ReactElement {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading, error } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    // Get initial session using our auth wrapper
-    async function checkAuth() {
-      try {
-        const { user } = await getCurrentSession();
-        setIsLoggedIn(!!user);
-      } catch (err) {
-        console.error("Auth check error:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    checkAuth();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async () => {
-      // Use our auth wrapper to maintain consistency
-      const { user } = await getCurrentSession();
-      setIsLoggedIn(!!user);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -47,7 +18,6 @@ export default function Header(): React.ReactElement {
       const { error, success } = await signOut();
 
       if (success) {
-        setIsLoggedIn(false);
         router.push("/");
       } else if (error) {
         console.error("Logout error:", error);
@@ -60,15 +30,17 @@ export default function Header(): React.ReactElement {
   };
 
   return (
-    <header className="bg-white border-b py-4">
-      <div className="max-w-none lg:max-w-10/12 mx-auto px-4 flex justify-between items-center">
+    <header className="bg-white border-b py-4 h-18">
+      <div className="h-full max-w-none lg:max-w-10/12 mx-auto px-4 flex justify-between items-center">
         <Link href="/">
           <h1 className="text-xl font-medium">Supply Library</h1>
         </Link>
         <nav>
           {isLoading ? (
-            <div className="h-10 w-24 bg-gray-100 animate-pulse rounded"></div>
-          ) : isLoggedIn ? (
+            <div className="h-8 w-24 bg-gray-100 animate-pulse rounded"></div>
+          ) : error ? (
+            <div className="text-red-500 text-sm">Authentication error</div>
+          ) : user ? (
             <>
               <Link href="/app">
                 <Button variant="outline" className="mr-2">
