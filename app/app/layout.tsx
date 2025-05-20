@@ -7,9 +7,7 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex-1">
-      <SidebarProvider>
-        <div className="flex h-full">{children}</div>
-      </SidebarProvider>
+      <SidebarProvider>{children}</SidebarProvider>
     </div>
   );
 }
