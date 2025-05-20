@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/app/components/ui/button";
 import { getCurrentSession, signOut } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function Header(): React.ReactElement {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,6 +14,7 @@ export default function Header(): React.ReactElement {
   const router = useRouter();
 
   useEffect(() => {
+    // Get initial session using our auth wrapper
     async function checkAuth() {
       try {
         const { user } = await getCurrentSession();
@@ -25,6 +27,18 @@ export default function Header(): React.ReactElement {
     }
 
     checkAuth();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Use our auth wrapper to maintain consistency
+      const { user } = await getCurrentSession();
+      setIsLoggedIn(!!user);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
