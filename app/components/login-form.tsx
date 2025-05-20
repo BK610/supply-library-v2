@@ -193,8 +193,9 @@ export function LoginForm({
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
                     {formView === "login" && (
-                      <button
+                      <Button
                         type="button"
+                        variant="link"
                         onClick={() => {
                           setFormView("reset");
                           resetForm();
@@ -202,7 +203,7 @@ export function LoginForm({
                         className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                       >
                         Forgot your password?
-                      </button>
+                      </Button>
                     )}
                   </div>
                   <Input
@@ -242,44 +243,44 @@ export function LoginForm({
               {formView === "login" ? (
                 <>
                   Don&apos;t have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => {
                       setFormView("signup");
                       resetForm();
                     }}
-                    className="underline underline-offset-4 text-primary"
                   >
                     Sign up
-                  </button>
+                  </Button>
                 </>
               ) : formView === "signup" ? (
                 <>
                   Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => {
                       setFormView("login");
                       resetForm();
                     }}
-                    className="underline underline-offset-4 text-primary"
                   >
                     Login
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
                   Remember your password?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => {
                       setFormView("login");
                       resetForm();
                     }}
-                    className="underline underline-offset-4 text-primary"
                   >
                     Back to login
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
