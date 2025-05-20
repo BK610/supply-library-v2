@@ -14,7 +14,11 @@ import { CommunitiesSidebar } from "@/app/components/CommunitiesSidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 // import { InvitationsList } from "@/app/components/InvitationsList";
 import { ItemsGrid } from "@/app/components/ItemCard";
-import { searchUserItems, Item } from "@/lib/items";
+import {
+  searchCommunityItems,
+  Item,
+  getUserAccessibleItems,
+} from "@/lib/items";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
@@ -110,7 +114,7 @@ export default function App(): React.ReactElement {
 
   // Add search handler
   const handleSearch = async () => {
-    if (!user || !searchQuery.trim()) {
+    if (!user) {
       setSearchResults([]);
       return;
     }
@@ -119,18 +123,32 @@ export default function App(): React.ReactElement {
     setSearchError(null);
 
     try {
-      const { items: foundItems, error } = await searchUserItems(
-        user.id,
-        searchQuery
-      );
+      if (!searchQuery.trim()) {
+        const { items: foundItems, error } = await getUserAccessibleItems(
+          user.id
+        );
 
-      if (error) {
-        console.error("Error searching items:", error);
-        setSearchError(error);
-        return;
+        if (error) {
+          console.error("Error searching items:", error);
+          setSearchError(error);
+          return;
+        }
+
+        setSearchResults(foundItems || []);
+      } else {
+        const { items: foundItems, error } = await searchCommunityItems(
+          user.id,
+          searchQuery
+        );
+
+        if (error) {
+          console.error("Error searching items:", error);
+          setSearchError(error);
+          return;
+        }
+
+        setSearchResults(foundItems || []);
       }
-
-      setSearchResults(foundItems || []);
     } catch (err) {
       console.error("Unexpected error searching items:", err);
       setSearchError(
@@ -177,13 +195,13 @@ export default function App(): React.ReactElement {
         <SidebarTrigger className="md:hidden" />
 
         <div className="flex flex-col items-center px-4 py-8">
-          <h1 className="text-2xl font-semibold mb-6">
+          <h1 className="text-2xl font-semibold mb-2">
             Hey there,{" "}
             {user?.user_metadata?.full_name ||
               user?.email?.split("@")[0] ||
               "friend"}
           </h1>
-
+          <p className="text-gray-500 mb-6">What are you looking for today?</p>
           <div className="w-full max-w-2xl mb-8">
             <Input
               type="search"
