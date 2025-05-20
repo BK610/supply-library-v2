@@ -18,7 +18,18 @@ import {
   searchCommunityItems,
   Item,
   getUserAccessibleItems,
+  createPersonalItem,
 } from "@/lib/items";
+import { CreateNewItemForm } from "@/components/CreateNewItemForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function App(): React.ReactElement {
   const router = useRouter();
@@ -33,6 +44,10 @@ export default function App(): React.ReactElement {
   // Invitations state
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loadingInvitations, setLoadingInvitations] = useState(false);
+
+  const [isCreateItemDialogOpen, setIsCreateItemDialogOpen] = useState(false);
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
+  const [createItemError, setCreateItemError] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -213,7 +228,66 @@ export default function App(): React.ReactElement {
           </div>
 
           <div className="w-full max-w-2xl">
-            <h2 className="text-lg font-medium mb-4">Items</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium">Items</h2>
+              <Dialog
+                open={isCreateItemDialogOpen}
+                onOpenChange={setIsCreateItemDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button>Create Item</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
+                  <DialogHeader>
+                    <DialogTitle>Create a new item</DialogTitle>
+                    <DialogDescription>
+                      Add a new item to your inventory
+                    </DialogDescription>
+                  </DialogHeader>
+                  <CreateNewItemForm
+                    onSubmit={async (itemData) => {
+                      if (!user) {
+                        setCreateItemError(
+                          "You must be logged in to create an item"
+                        );
+                        return;
+                      }
+
+                      setIsCreatingItem(true);
+                      setCreateItemError(null);
+
+                      try {
+                        const { item, error } = await createPersonalItem(
+                          itemData,
+                          user
+                        );
+
+                        if (error) {
+                          setCreateItemError(error);
+                          return;
+                        }
+
+                        if (item) {
+                          // Refresh the items list
+                          handleSearch();
+                          setIsCreateItemDialogOpen(false);
+                        }
+                      } catch (err) {
+                        setCreateItemError(
+                          err instanceof Error
+                            ? err.message
+                            : "Failed to create item"
+                        );
+                      } finally {
+                        setIsCreatingItem(false);
+                      }
+                    }}
+                    isSubmitting={isCreatingItem}
+                    error={createItemError || undefined}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
             {isSearching ? (
               <div className="text-gray-500 text-center py-4">Searching...</div>
             ) : searchError ? (
