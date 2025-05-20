@@ -325,7 +325,7 @@ export async function getUserAccessibleItems(
 }
 
 /**
- * Search for items across all communities a user is in
+ * Search for items across all communities a user is in and personal items
  */
 export async function searchCommunityItems(
   userId: string,
@@ -343,52 +343,81 @@ export async function searchCommunityItems(
       return { error: communitiesError };
     }
 
-    if (!communities || communities.length === 0) {
-      return { items: [] };
+    // Get items from communities
+    let communityItems: Item[] = [];
+    if (communities && communities.length > 0) {
+      // Extract community IDs
+      const communityIds = communities.map((c: Community) => c.id);
+
+      // Get all items in these communities
+      const { data: communityItemsData, error: communityItemsError } =
+        await supabase
+          .from("community_items")
+          .select("item_id")
+          .in("community_id", communityIds);
+
+      if (communityItemsError) {
+        console.error("Error fetching community items:", communityItemsError);
+        return { error: communityItemsError.message };
+      }
+
+      if (communityItemsData && communityItemsData.length > 0) {
+        // Extract item IDs
+        const itemIds = communityItemsData.map((item) => item.item_id);
+
+        // Build the query for community items
+        let query = supabase
+          .from("items")
+          .select("*, profiles:owner_id(username, avatar_url)")
+          .in("id", itemIds);
+
+        // Add search condition only if searchQuery is provided
+        if (searchQuery) {
+          query = query.ilike("name", `%${searchQuery}%`);
+        }
+
+        const { data: items, error: itemsError } = await query;
+
+        if (itemsError) {
+          console.error("Error searching items:", itemsError);
+          return { error: itemsError.message };
+        }
+
+        // Transform the result to match our Item interface
+        communityItems = items.map(
+          (
+            item: Item & {
+              profiles?: { username: string; avatar_url: string | null };
+            }
+          ) => ({
+            ...item,
+            owner_profile: item.profiles,
+            profiles: undefined, // Remove the profiles property
+          })
+        ) as Item[];
+      }
     }
 
-    // Extract community IDs
-    const communityIds = communities.map((c: Community) => c.id);
-
-    // Get all items in these communities
-    const { data: communityItems, error: communityItemsError } = await supabase
-      .from("community_items")
-      .select("item_id")
-      .in("community_id", communityIds);
-
-    if (communityItemsError) {
-      console.error("Error fetching community items:", communityItemsError);
-      return { error: communityItemsError.message };
-    }
-
-    if (!communityItems || communityItems.length === 0) {
-      return { items: [] };
-    }
-
-    // Extract item IDs
-    const itemIds = communityItems.map((item) => item.item_id);
-
-    // Build the query
+    // Get personal items (items owned by the user but not in any community)
     let query = supabase
       .from("items")
       .select("*, profiles:owner_id(username, avatar_url)")
-      .in("id", itemIds)
-      .limit(limit);
+      .eq("owner_id", userId);
 
     // Add search condition only if searchQuery is provided
     if (searchQuery) {
       query = query.ilike("name", `%${searchQuery}%`);
     }
 
-    const { data: items, error: itemsError } = await query;
+    const { data: personalItems, error: personalItemsError } = await query;
 
-    if (itemsError) {
-      console.error("Error searching items:", itemsError);
-      return { error: itemsError.message };
+    if (personalItemsError) {
+      console.error("Error fetching personal items:", personalItemsError);
+      return { error: personalItemsError.message };
     }
 
-    // Transform the result to match our Item interface
-    const transformedItems = items.map(
+    // Transform personal items to match our Item interface
+    const transformedPersonalItems = personalItems.map(
       (
         item: Item & {
           profiles?: { username: string; avatar_url: string | null };
@@ -398,11 +427,79 @@ export async function searchCommunityItems(
         owner_profile: item.profiles,
         profiles: undefined, // Remove the profiles property
       })
+    ) as Item[];
+
+    // Combine community items and personal items, removing duplicates
+    const allItems = [...communityItems, ...transformedPersonalItems];
+    const uniqueItems = Array.from(
+      new Map(allItems.map((item) => [item.id, item])).values()
     );
 
-    return { items: transformedItems as Item[] };
+    // Apply limit
+    return { items: uniqueItems.slice(0, limit) };
   } catch (error) {
-    console.error("Unexpected error searching community items:", error);
-    return { error: "Failed to search community items" };
+    console.error("Unexpected error searching items:", error);
+    return { error: "Failed to search items" };
+  }
+}
+
+/**
+ * Create a new item without associating it with a community
+ */
+export async function createPersonalItem(
+  itemData: {
+    name: string;
+    description?: string;
+    condition?: string;
+    category?: string;
+    image_url?: string;
+    consumable?: boolean;
+    quantity?: number;
+  },
+  user: User
+): Promise<{ item?: Item; error?: string }> {
+  try {
+    // Create the item
+    const { data: item, error: itemError } = await supabase
+      .from("items")
+      .insert({
+        name: itemData.name,
+        description: itemData.description,
+        condition: itemData.condition,
+        category: itemData.category,
+        image_url: itemData.image_url,
+        consumable: itemData.consumable ?? false,
+        quantity: itemData.quantity ?? 1,
+        owner_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (itemError) {
+      console.error("Error creating item:", itemError);
+      return { error: itemError.message };
+    }
+
+    // Get the owner profile
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("username, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching owner profile:", profileError);
+      // We'll return the item even without profile info
+    } else if (profileData) {
+      // Add owner profile to the item
+      item.owner_profile = profileData;
+    }
+
+    return { item };
+  } catch (error) {
+    console.error("Unexpected error creating item:", error);
+    return {
+      error: error instanceof Error ? error.message : "Failed to create item",
+    };
   }
 }
