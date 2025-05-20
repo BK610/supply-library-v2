@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { User } from "@supabase/supabase-js";
+import { getUserCommunities, Community } from "./communities";
 
 export interface Item {
   id: string;
@@ -310,5 +311,98 @@ export async function getCommunityMembers(
   } catch (error) {
     console.error("Unexpected error fetching community members:", error);
     return { error: "Failed to fetch community members" };
+  }
+}
+
+/**
+ * Get all items a user has access to in their communities
+ */
+export async function getUserAccessibleItems(
+  userId: string,
+  limit: number = 10
+): Promise<{ items?: Item[]; error?: string }> {
+  return searchCommunityItems(userId, "", limit);
+}
+
+/**
+ * Search for items across all communities a user is in
+ */
+export async function searchCommunityItems(
+  userId: string,
+  searchQuery: string,
+  limit: number = 10
+): Promise<{ items?: Item[]; error?: string }> {
+  try {
+    // Get user's communities using existing function
+    const { communities, error: communitiesError } = await getUserCommunities(
+      userId
+    );
+
+    if (communitiesError) {
+      console.error("Error fetching user communities:", communitiesError);
+      return { error: communitiesError };
+    }
+
+    if (!communities || communities.length === 0) {
+      return { items: [] };
+    }
+
+    // Extract community IDs
+    const communityIds = communities.map((c: Community) => c.id);
+
+    // Get all items in these communities
+    const { data: communityItems, error: communityItemsError } = await supabase
+      .from("community_items")
+      .select("item_id")
+      .in("community_id", communityIds);
+
+    if (communityItemsError) {
+      console.error("Error fetching community items:", communityItemsError);
+      return { error: communityItemsError.message };
+    }
+
+    if (!communityItems || communityItems.length === 0) {
+      return { items: [] };
+    }
+
+    // Extract item IDs
+    const itemIds = communityItems.map((item) => item.item_id);
+
+    // Build the query
+    let query = supabase
+      .from("items")
+      .select("*, profiles:owner_id(username, avatar_url)")
+      .in("id", itemIds)
+      .limit(limit);
+
+    // Add search condition only if searchQuery is provided
+    if (searchQuery) {
+      query = query.ilike("name", `%${searchQuery}%`);
+    }
+
+    const { data: items, error: itemsError } = await query;
+
+    if (itemsError) {
+      console.error("Error searching items:", itemsError);
+      return { error: itemsError.message };
+    }
+
+    // Transform the result to match our Item interface
+    const transformedItems = items.map(
+      (
+        item: Item & {
+          profiles?: { username: string; avatar_url: string | null };
+        }
+      ) => ({
+        ...item,
+        owner_profile: item.profiles,
+        profiles: undefined, // Remove the profiles property
+      })
+    );
+
+    return { items: transformedItems as Item[] };
+  } catch (error) {
+    console.error("Unexpected error searching community items:", error);
+    return { error: "Failed to search community items" };
   }
 }
