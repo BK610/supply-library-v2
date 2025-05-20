@@ -64,6 +64,185 @@ import { ItemsGrid } from "@/app/components/ItemCard";
 import Link from "next/link";
 import { ItemCard } from "@/app/components/ItemCard";
 import { Mail } from "lucide-react";
+import { CreateNewItemForm } from "@/components/CreateNewItemForm";
+
+interface AddItemDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddExistingItem: (item: Item) => Promise<void>;
+  onAddNewItem: (item: {
+    name: string;
+    description?: string;
+    category?: string;
+    condition?: string;
+    quantity: number;
+    consumable: boolean;
+  }) => Promise<void>;
+  isAddingExistingItem: boolean;
+  isCreatingItem: boolean;
+  addExistingItemError?: string;
+  addItemError?: string;
+  user: User;
+  communityId: string;
+}
+
+function AddItemDialog({
+  open,
+  onOpenChange,
+  onAddExistingItem,
+  onAddNewItem,
+  isAddingExistingItem,
+  isCreatingItem,
+  addExistingItemError,
+  addItemError,
+  user,
+  communityId,
+}: AddItemDialogProps) {
+  const [activeTab, setActiveTab] = useState<string>("search");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Item[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+      setSearchResults([]);
+      setSelectedItem(null);
+      setActiveTab("search");
+    }
+  }, [open]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const { items: foundItems, error } = await searchUserItems(
+        user?.id || "",
+        searchQuery,
+        communityId
+      );
+
+      if (error) {
+        console.error("Error searching items:", error);
+        return;
+      }
+
+      setSearchResults(foundItems || []);
+    } catch (err) {
+      console.error("Unexpected error searching items:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle>Add an item to this community</DialogTitle>
+          <DialogDescription>
+            Search for existing items or create a new one
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="search">Search My Items</TabsTrigger>
+            <TabsTrigger value="create">Create New Item</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="pt-4">
+            <div className="grid gap-4 max-h-[60vh] overflow-y-auto pb-4">
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Label htmlFor="search" className="mb-2 block">
+                    Search for your existing items
+                  </Label>
+                  <Input
+                    id="search"
+                    placeholder="Search by item name"
+                    value={searchQuery}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setSearchQuery(e.target.value)
+                    }
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  />
+                </div>
+                <Button
+                  onClick={handleSearch}
+                  disabled={isSearching || !searchQuery.trim()}
+                >
+                  {isSearching ? "Searching..." : "Search"}
+                </Button>
+              </div>
+
+              {searchResults.length > 0 ? (
+                <div className="border rounded-md divide-y max-h-[40vh] overflow-auto">
+                  {searchResults.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`${
+                        selectedItem?.id === item.id ? "bg-blue-50" : ""
+                      }`}
+                    >
+                      <ItemCard
+                        item={item}
+                        onClick={() => setSelectedItem(item)}
+                        className={`rounded-none border-0 ${
+                          selectedItem?.id === item.id ? "bg-blue-50" : ""
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : searchQuery && !isSearching ? (
+                <div className="text-center py-4 border rounded-md bg-gray-50">
+                  <p className="text-gray-600 mb-2">No matching items found</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveTab("create")}
+                  >
+                    Create a new item
+                  </Button>
+                </div>
+              ) : null}
+
+              {addExistingItemError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+                  {addExistingItemError}
+                </div>
+              )}
+
+              {selectedItem && (
+                <div className="mt-4">
+                  <Button
+                    className="w-full"
+                    onClick={() => onAddExistingItem(selectedItem)}
+                    disabled={isAddingExistingItem}
+                  >
+                    {isAddingExistingItem ? "Adding..." : "Add to Community"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="create" className="pt-4">
+            <CreateNewItemForm
+              onSubmit={onAddNewItem}
+              isSubmitting={isCreatingItem}
+              error={addItemError}
+            />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -571,214 +750,81 @@ export default function CommunityPage() {
 
           <Dialog
             open={isAddItemDialogOpen}
-            onOpenChange={handleDialogOpenChange}
+            onOpenChange={setIsAddItemDialogOpen}
           >
             <DialogTrigger asChild>
               <Button>Add Item</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden">
-              <DialogHeader>
-                <DialogTitle>Add an item to this community</DialogTitle>
-                <DialogDescription>
-                  Search for existing items or create a new one
-                </DialogDescription>
-              </DialogHeader>
+            <AddItemDialog
+              open={isAddItemDialogOpen}
+              onOpenChange={setIsAddItemDialogOpen}
+              onAddExistingItem={async (item) => {
+                setIsAddingExistingItem(true);
+                setAddExistingItemError("");
 
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="mt-4"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="search">Search My Items</TabsTrigger>
-                  <TabsTrigger value="create">Create New Item</TabsTrigger>
-                </TabsList>
+                try {
+                  const { success, error } = await addItemToCommunity(
+                    item.id,
+                    communityId
+                  );
 
-                <TabsContent value="search" className="pt-4">
-                  <div className="grid gap-4 max-h-[60vh] overflow-y-auto pb-4">
-                    <div className="flex items-end gap-2">
-                      <div className="flex-1">
-                        <Label htmlFor="search" className="mb-2 block">
-                          Search for your existing items
-                        </Label>
-                        <Input
-                          id="search"
-                          placeholder="Search by item name"
-                          value={searchQuery}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setSearchQuery(e.target.value)
-                          }
-                          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        />
-                      </div>
-                      <Button
-                        onClick={handleSearch}
-                        disabled={isSearching || !searchQuery.trim()}
-                      >
-                        {isSearching ? "Searching..." : "Search"}
-                      </Button>
-                    </div>
+                  if (error) {
+                    setAddExistingItemError(error);
+                    return;
+                  }
 
-                    {searchResults.length > 0 ? (
-                      <div className="border rounded-md divide-y max-h-[40vh] overflow-auto">
-                        {searchResults.map((item) => (
-                          <div
-                            key={item.id}
-                            className={`${
-                              selectedItem?.id === item.id ? "bg-blue-50" : ""
-                            }`}
-                          >
-                            <ItemCard
-                              item={item}
-                              onClick={() => setSelectedItem(item)}
-                              className={`rounded-none border-0 ${
-                                selectedItem?.id === item.id ? "bg-blue-50" : ""
-                              }`}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : searchQuery && !isSearching ? (
-                      <div className="text-center py-4 border rounded-md bg-gray-50">
-                        <p className="text-gray-600 mb-2">
-                          No matching items found
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setActiveTab("create")}
-                        >
-                          Create a new item
-                        </Button>
-                      </div>
-                    ) : null}
+                  if (success) {
+                    setItems((prevItems) => [...prevItems, item]);
+                    setIsAddItemDialogOpen(false);
+                  }
+                } catch (err) {
+                  setAddExistingItemError(
+                    err instanceof Error ? err.message : "Failed to add item"
+                  );
+                } finally {
+                  setIsAddingExistingItem(false);
+                }
+              }}
+              onAddNewItem={async (itemData) => {
+                if (!user) {
+                  setAddItemError("You must be logged in to add an item");
+                  return;
+                }
 
-                    {addExistingItemError && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
-                        {addExistingItemError}
-                      </div>
-                    )}
+                setIsCreatingItem(true);
+                setAddItemError("");
 
-                    {selectedItem && (
-                      <div className="mt-4">
-                        <Button
-                          className="w-full"
-                          onClick={handleAddExistingItem}
-                          disabled={isAddingExistingItem}
-                        >
-                          {isAddingExistingItem
-                            ? "Adding..."
-                            : "Add to Community"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
+                try {
+                  const { item, error } = await createItem(
+                    itemData,
+                    communityId,
+                    user
+                  );
 
-                <TabsContent value="create" className="pt-4">
-                  <div className="grid gap-4 max-h-[60vh] overflow-y-auto pb-4 px-1">
-                    <div className="grid gap-2">
-                      <Label htmlFor="name">Item name*</Label>
-                      <Input
-                        id="name"
-                        value={newItemName}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setNewItemName(e.target.value)
-                        }
-                        placeholder="What is this item called?"
-                      />
-                    </div>
+                  if (error) {
+                    setAddItemError(error);
+                    return;
+                  }
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={newItemDescription}
-                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                          setNewItemDescription(e.target.value)
-                        }
-                        placeholder="Describe this item"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="category">Category</Label>
-                        <Input
-                          id="category"
-                          value={newItemCategory}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setNewItemCategory(e.target.value)
-                          }
-                          placeholder="Tools, Kitchen, etc."
-                        />
-                      </div>
-
-                      <div className="grid gap-2">
-                        <Label htmlFor="condition">Condition</Label>
-                        <Select
-                          value={newItemCondition}
-                          onValueChange={setNewItemCondition}
-                        >
-                          <SelectTrigger id="condition">
-                            <SelectValue placeholder="Select condition" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="new">New</SelectItem>
-                            <SelectItem value="like-new">Like New</SelectItem>
-                            <SelectItem value="good">Good</SelectItem>
-                            <SelectItem value="fair">Fair</SelectItem>
-                            <SelectItem value="poor">Poor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input
-                          id="quantity"
-                          type="number"
-                          min="1"
-                          value={newItemQuantity}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                            setNewItemQuantity(parseInt(e.target.value) || 1)
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-center gap-2 h-full pt-6">
-                        <Checkbox
-                          id="consumable"
-                          checked={newItemConsumable}
-                          onCheckedChange={(
-                            checked: boolean | "indeterminate"
-                          ) => setNewItemConsumable(checked === true)}
-                        />
-                        <Label htmlFor="consumable">Consumable item</Label>
-                      </div>
-                    </div>
-
-                    {addItemError && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
-                        {addItemError}
-                      </div>
-                    )}
-
-                    <div className="mt-4">
-                      <Button
-                        className="w-full"
-                        onClick={handleCreateItem}
-                        disabled={isCreatingItem}
-                      >
-                        {isCreatingItem ? "Creating..." : "Create Item"}
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </DialogContent>
+                  if (item) {
+                    setItems((prevItems) => [...prevItems, item]);
+                    setIsAddItemDialogOpen(false);
+                  }
+                } catch (err) {
+                  setAddItemError(
+                    err instanceof Error ? err.message : "Failed to create item"
+                  );
+                } finally {
+                  setIsCreatingItem(false);
+                }
+              }}
+              isAddingExistingItem={isAddingExistingItem}
+              isCreatingItem={isCreatingItem}
+              addExistingItemError={addExistingItemError}
+              addItemError={addItemError}
+              user={user!}
+              communityId={communityId}
+            />
           </Dialog>
         </div>
 
