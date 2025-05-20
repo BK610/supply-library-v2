@@ -24,12 +24,16 @@ interface CommunitiesSidebarProps {
   communities: Community[];
   user: User;
   onCommunityCreated: (community: Community) => void;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 export function CommunitiesSidebar({
   communities,
   user,
   onCommunityCreated,
+  isLoading = false,
+  error = null,
 }: CommunitiesSidebarProps) {
   const [isCreatingCommunity, setIsCreatingCommunity] = useState(false);
   const [newCommunityName, setNewCommunityName] = useState("");
@@ -138,11 +142,26 @@ export function CommunitiesSidebar({
           </DialogContent>
         </Dialog>
 
-        <div className="space-y-2">
-          {communities.map((community) => (
-            <CommunityCard key={community.id} community={community} />
-          ))}
-        </div>
+        {error ? (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm mb-4">
+            {error}
+          </div>
+        ) : isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-12 bg-gray-100 animate-pulse rounded-md"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {communities.map((community) => (
+              <CommunityCard key={community.id} community={community} />
+            ))}
+          </div>
+        )}
       </div>
     </Sidebar>
   );
