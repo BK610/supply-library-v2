@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Session, User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 
 export type AuthError = {
   message: string;
@@ -53,7 +53,6 @@ export async function signUp(
     }
 
     // Check if user already exists by examining the identities array
-    // An empty identities array indicates the email is already registered
     if (
       data.user &&
       data.user.identities &&
@@ -81,10 +80,9 @@ export async function signIn(
 ): Promise<{
   error: AuthError | null;
   success: boolean;
-  session: Session | null;
 }> {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -96,21 +94,15 @@ export async function signIn(
           code: error.code,
         },
         success: false,
-        session: null,
       };
     }
 
-    return {
-      error: null,
-      success: true,
-      session: data.session,
-    };
+    return { error: null, success: true };
   } catch (err) {
     console.error("Sign in error:", err);
     return {
       error: { message: "An unexpected error occurred" },
       success: false,
-      session: null,
     };
   }
 }
@@ -144,7 +136,6 @@ export async function signOut(): Promise<{
 
 export async function getCurrentSession(): Promise<{
   error: AuthError | null;
-  session: Session | null;
   user: User | null;
 }> {
   try {
@@ -156,21 +147,18 @@ export async function getCurrentSession(): Promise<{
           message: error.message || "Failed to get session",
           code: error.code,
         },
-        session: null,
         user: null,
       };
     }
 
     return {
       error: null,
-      session: data.session,
       user: data.session?.user || null,
     };
   } catch (err) {
     console.error("Get session error:", err);
     return {
       error: { message: "An unexpected error occurred" },
-      session: null,
       user: null,
     };
   }
@@ -187,14 +175,11 @@ export async function resetPassword(
     // Get the site URL for the reset password link
     let siteUrl = "";
     if (typeof window !== "undefined") {
-      // In the browser, we can get the current origin
       siteUrl = window.location.origin;
     } else {
-      // In a server context, use the environment variable or a default
       siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
     }
 
-    // Set the redirect URL to our reset-password page
     const resetRedirectTo = redirectTo || `${siteUrl}/reset-password`;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
