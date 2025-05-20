@@ -1,6 +1,8 @@
 import { Community } from "@/lib/communities";
 import Link from "next/link";
 
+import { cn } from "@/utils/utils";
+
 interface CommunityCardProps {
   community: Community;
   className?: string;
@@ -16,17 +18,16 @@ export function CommunityCard({
   return (
     <Link
       href={`/app/community/${community.id}`}
-      className="rounded-lg block"
+      className={cn(
+        "rounded-lg block bg-white hover:bg-blue-50 border  p-4 hover:shadow-md cursor-pointer transition-all",
+        className
+      )}
       tabIndex={0}
     >
-      <div
-        className={`border rounded-lg p-4 hover:shadow-md cursor-pointer transition-shadow ${className}`}
-      >
-        <h3 className="font-semibold">{community.name}</h3>
-        {community.description && (
-          <p className="text-gray-600 text-sm mt-1">{community.description}</p>
-        )}
-      </div>
+      <h3 className="font-semibold">{community.name}</h3>
+      {community.description && (
+        <p className="text-gray-600 text-sm mt-1">{community.description}</p>
+      )}
     </Link>
   );
 }
@@ -49,7 +50,7 @@ export function CommunitiesGrid({
 }: CommunitiesGridProps) {
   if (communities.length === 0) {
     return (
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 mb-8 text-center">
+      <div className="border border-blue-100 rounded-lg p-6 mb-8 text-center">
         {emptyMessage}
         {actionButton && <div className="mt-6">{actionButton}</div>}
       </div>
