@@ -39,10 +39,10 @@ export default function App(): React.ReactElement {
           setUser(user);
 
           // Fetch user communities
-          const { communities, error: communitiesError } =
+          const { communities: userCommunities, error: communitiesError } =
             await getUserCommunities(user.id);
-          if (!communitiesError && communities) {
-            setCommunities(communities);
+          if (!communitiesError && userCommunities) {
+            setCommunities(userCommunities);
           }
 
           // Fetch user invitations
@@ -130,19 +130,33 @@ export default function App(): React.ReactElement {
         )}
         <SidebarTrigger className="md:hidden" />
 
-        <div className="mb-6">
-          <Input
-            type="search"
-            placeholder="Search items across your communities..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-2xl"
-          />
-        </div>
+        <div className="flex flex-col items-center px-4 py-8">
+          <h1 className="text-2xl font-semibold mb-6">
+            Hey there,{" "}
+            {user?.user_metadata?.full_name ||
+              user?.email?.split("@")[0] ||
+              "friend"}
+          </h1>
 
-        {/* TODO: Implement search results and recent items */}
-        <div className="text-gray-500 text-center py-8">
-          Search functionality coming soon...
+          <div className="w-full max-w-2xl mb-8">
+            <Input
+              type="search"
+              placeholder="Search items across your communities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
+          <div className="w-full max-w-2xl">
+            <h2 className="text-lg font-medium mb-4">Items</h2>
+            <div className="space-y-4">
+              {/* TODO: Implement actual search results */}
+              <div className="text-gray-500 text-center py-4">
+                Search functionality coming soon...
+              </div>
+            </div>
+          </div>
         </div>
       </SidebarInset>
     </>
