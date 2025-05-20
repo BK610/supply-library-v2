@@ -61,7 +61,7 @@ export default function Header(): React.ReactElement {
 
   return (
     <header className="bg-white border-b py-4">
-      <div className="container mx-auto px-4 flex justify-between items-center">
+      <div className="max-w-none lg:max-w-10/12 mx-auto px-4 flex justify-between items-center">
         <Link href="/">
           <h1 className="text-xl font-medium">Supply Library</h1>
         </Link>
