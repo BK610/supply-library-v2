@@ -2,7 +2,6 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState, ChangeEvent } from "react";
-import { getCurrentSession } from "@/lib/auth";
 import { Settings } from "lucide-react";
 import {
   Community,
@@ -56,6 +55,7 @@ import Link from "next/link";
 import { ItemCard } from "@/app/components/ItemCard";
 import { Mail } from "lucide-react";
 import { CreateNewItemForm } from "@/components/CreateNewItemForm";
+import { useAuth } from "@/lib/auth-context";
 
 interface AddItemDialogProps {
   open: boolean;
@@ -239,8 +239,8 @@ export default function CommunityPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const communityId = params.id;
+  const { user, isLoading: isAuthLoading, error: authError } = useAuth();
 
-  const [user, setUser] = useState<User | null>(null);
   const [community, setCommunity] = useState<Community | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -269,22 +269,22 @@ export default function CommunityPage() {
   );
   const [showInvitations, setShowInvitations] = useState(false);
 
+  // Handle authentication redirect
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push("/login");
+    }
+  }, [isAuthLoading, user, router]);
+
   // Fetch the community data, items, members, and invitations
   useEffect(() => {
     async function fetchData() {
+      if (!user || !communityId) return;
+
       setLoading(true);
       setError(null);
 
       try {
-        // Check auth first
-        const { user: currentUser, error: authError } =
-          await getCurrentSession();
-        if (authError || !currentUser) {
-          router.push("/login");
-          return;
-        }
-        setUser(currentUser);
-
         // Fetch community details
         const { data: communityData, error: communityError } = await supabase
           .from("communities")
@@ -306,7 +306,7 @@ export default function CommunityPage() {
           .from("community_members")
           .select("role")
           .eq("community_id", communityId)
-          .eq("member_id", currentUser.id)
+          .eq("member_id", user.id)
           .single();
 
         if (!memberRoleError && memberRole && memberRole.role === "admin") {
@@ -314,7 +314,7 @@ export default function CommunityPage() {
 
           // If admin, fetch pending invitations
           const { invitations, error: invitationsError } =
-            await getCommunityInvitations(communityId, currentUser.id);
+            await getCommunityInvitations(communityId, user.id);
 
           if (invitationsError) {
             console.error("Error fetching invitations:", invitationsError);
@@ -352,10 +352,10 @@ export default function CommunityPage() {
       }
     }
 
-    if (communityId) {
+    if (!isAuthLoading) {
       fetchData();
     }
-  }, [communityId, router]);
+  }, [communityId, user, isAuthLoading]);
 
   // Handle inviting a user
   const handleInviteUser = async () => {
@@ -397,6 +397,27 @@ export default function CommunityPage() {
       setIsInviting(false);
     }
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p>Loading authentication...</p>
+      </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
+          {authError}
+        </div>
+        <Link href="/app">
+          <Button>Back to Dashboard</Button>
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
