@@ -11,6 +11,7 @@ import {
 } from "@/lib/communities";
 import { Input } from "@/app/components/ui/input";
 import { CommunitiesSidebar } from "@/app/components/CommunitiesSidebar";
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { InvitationsList } from "@/app/components/InvitationsList";
 import { ItemsGrid } from "@/app/components/ItemCard";
 
@@ -110,7 +111,7 @@ export default function App(): React.ReactElement {
   }
 
   return (
-    <div className="flex h-full">
+    <>
       <CommunitiesSidebar
         communities={communities}
         user={user!}
@@ -119,7 +120,7 @@ export default function App(): React.ReactElement {
         }
       />
 
-      <div className="flex-1 p-6">
+      <SidebarInset>
         {!loadingInvitations && invitations.length > 0 && (
           <InvitationsList
             invitations={invitations}
@@ -127,6 +128,7 @@ export default function App(): React.ReactElement {
             onInvitationResponded={handleInvitationResponded}
           />
         )}
+        <SidebarTrigger className="md:hidden" />
 
         <div className="mb-6">
           <Input
@@ -142,7 +144,7 @@ export default function App(): React.ReactElement {
         <div className="text-gray-500 text-center py-8">
           Search functionality coming soon...
         </div>
-      </div>
-    </div>
+      </SidebarInset>
+    </>
   );
 }
