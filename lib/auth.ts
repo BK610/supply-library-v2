@@ -124,6 +124,11 @@ export async function signOut(): Promise<{
       };
     }
 
+    // Navigate to login page after successful logout
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+
     return { error: null, success: true };
   } catch (err) {
     console.error("Sign out error:", err);
