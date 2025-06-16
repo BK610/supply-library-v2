@@ -167,7 +167,7 @@ export default function App(): React.ReactElement {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timer);
-  }, [searchQuery, user]);
+  }, [searchQuery, user, handleSearch]);
 
   if (isAuthLoading) {
     return (
