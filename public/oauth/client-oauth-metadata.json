@@ -1,5 +1,5 @@
 {
-  "client_id": "https://supply-library-v2.vercel.app/client-oauth-metadata.json",
+  "client_id": "https://supply-library-v2.vercel.app/oauth/client-oauth-metadata.json",
   "client_name": "Supply Library",
   "client_uri": "https://supply-library-v2.vercel.app",
   "logo_uri": "https://example.com/logo.png",
